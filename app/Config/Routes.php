@@ -240,6 +240,11 @@ $routes->group('teacher', ['namespace' => 'App\Controllers\Teacher', 'filter' =>
 });
 
 
+// API untuk sistem PPDB (Bearer token ABSENSI_API_TOKEN)
+$routes->group('api', ['namespace' => 'App\Controllers\Api', 'filter' => 'apitoken'], function ($routes) {
+   $routes->post('siswa/sync', 'SiswaSync::sync');
+});
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing
