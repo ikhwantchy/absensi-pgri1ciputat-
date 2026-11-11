@@ -12,6 +12,7 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use App\Filters\ApiTokenFilter;
 use Myth\Auth\Filters\LoginFilter;
 use Myth\Auth\Filters\RoleFilter;
 use Myth\Auth\Filters\PermissionFilter;
@@ -41,6 +42,7 @@ class Filters extends BaseFilters
         'login'         => LoginFilter::class,
         'role'          => RoleFilter::class,
         'permission'    => PermissionFilter::class,
+        'apitoken'      => ApiTokenFilter::class,
     ];
 
     /**
@@ -80,7 +82,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'honeypot',
-            'login' => ['except' => ['login', 'logout', 'scanner', 'scanner/*']]
+            'login' => ['except' => ['login', 'logout', 'scanner', 'scanner/*', 'api/*']]
             // 'csrf',
             // 'invalidchars',
         ],
