@@ -28,7 +28,7 @@
                         <i class="material-icons text-primary" style="font-size: 24px;">admin_panel_settings</i>
                     </div>
                     <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; letter-spacing: -0.5px;">Selamat Datang Kembali</h2>
-                    <p style="font-size: 14px; color: #64748b; margin: 0;">Silakan login untuk mengelola absensi SMP PGRI 1 Ciputat</p>
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">Silakan login untuk mengelola sistem absensi</p>
                 </div>
 
                 <?= view('\App\Views\admin\_message_block') ?>
