@@ -35,7 +35,7 @@ $routes->set404Override();
 
 // Scan
 $routes->get('/', function () {
-   helper('user');
+   helper(['auth', 'user']);
    if (is_wali_kelas()) {
       return redirect()->to(base_url('teacher/dashboard'));
    }
