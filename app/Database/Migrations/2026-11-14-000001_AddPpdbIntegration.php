@@ -30,6 +30,13 @@ class AddPpdbIntegration extends Migration
                 'constraint' => 11,
                 'null'       => true,
             ],
+            // "tingkat|index" kelas terakhir yang diset dari PPDB; deteksi rombel ganti nama vs kenaikan manual.
+            'ppdb_kelas_key' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 20,
+                'null'       => true,
+                'default'    => null,
+            ],
         ]);
         $this->db->query('CREATE UNIQUE INDEX uq_tb_siswa_ppdb_ref ON tb_siswa(ppdb_ref)');
 
@@ -72,6 +79,6 @@ class AddPpdbIntegration extends Migration
         } else {
             $this->db->query('DROP INDEX uq_tb_siswa_ppdb_ref ON tb_siswa');
         }
-        $this->forge->dropColumn('tb_siswa', ['ppdb_ref', 'is_active', 'ppdb_synced_at', 'ppdb_rombel_id']);
+        $this->forge->dropColumn('tb_siswa', ['ppdb_ref', 'is_active', 'ppdb_synced_at', 'ppdb_rombel_id', 'ppdb_kelas_key']);
     }
 }

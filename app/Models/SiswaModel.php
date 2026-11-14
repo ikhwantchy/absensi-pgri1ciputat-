@@ -19,7 +19,8 @@ class SiswaModel extends Model
          'ppdb_ref',
          'is_active',
          'ppdb_synced_at',
-         'ppdb_rombel_id'
+         'ppdb_rombel_id',
+         'ppdb_kelas_key'
       ];
    }
 

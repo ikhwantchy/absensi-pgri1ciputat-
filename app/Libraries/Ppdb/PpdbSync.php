@@ -300,6 +300,7 @@ class PpdbSync
                 'unique_code'    => generateToken(),
                 'ppdb_ref'       => $ref,
                 'ppdb_rombel_id' => $rombel['id'],
+                'ppdb_kelas_key' => $this->kelasKey($rombel),
                 'is_active'      => 1,
                 'ppdb_synced_at' => $now,
             ]), "insert siswa {$ref}");
@@ -320,11 +321,9 @@ class PpdbSync
             $data['nis'] = $nis;
         }
 
-        // Kelas hanya pindah bila rombel benar-benar diganti di PPDB; kenaikan manual di siab dipertahankan.
         // Rombel null atau rusak: kelas lama tetap.
-        if ($rombel !== null && $rombel['id'] !== (int) ($existing['ppdb_rombel_id'] ?? 0)) {
-            $data['id_kelas']       = $this->kelasId($rombel);
-            $data['ppdb_rombel_id'] = $rombel['id'];
+        if ($rombel !== null) {
+            $data += $this->kelasChange($existing, $rombel);
         }
 
         $this->write(
@@ -366,6 +365,48 @@ class PpdbSync
         return ['id' => (int) $id, 'tingkat' => $tingkat, 'index' => $index];
     }
 
+    /** @param array{tingkat: string, index: string} $rombel */
+    private function kelasKey(array $rombel): string
+    {
+        return $rombel['tingkat'] . '|' . $rombel['index'];
+    }
+
+    /**
+     * Kolom kelas yang berubah untuk siswa lama.
+     *
+     * - Rombel diganti di PPDB (id beda): pindah ke kelas rombel baru.
+     * - Rombel sama tapi tingkat/index berubah (ganti nama): pindah hanya bila siswa masih di kelas
+     *   dari key lama, artinya belum dinaikkan manual di siab. Key tetap diperbarui.
+     * - Key lama kosong (data sebelum kolom ada): kelas tidak diubah, key diisi.
+     *
+     * @param array{id: int, tingkat: string, index: string} $rombel
+     */
+    private function kelasChange(array $existing, array $rombel): array
+    {
+        $newKey = $this->kelasKey($rombel);
+
+        if ($rombel['id'] !== (int) ($existing['ppdb_rombel_id'] ?? 0)) {
+            return ['id_kelas' => $this->kelasId($rombel), 'ppdb_rombel_id' => $rombel['id'], 'ppdb_kelas_key' => $newKey];
+        }
+
+        $oldKey = $existing['ppdb_kelas_key'] ?? null;
+        if ($oldKey === $newKey) {
+            return [];
+        }
+
+        $data = ['ppdb_kelas_key' => $newKey];
+        if ($oldKey !== null && $oldKey !== '') {
+            [$tingkat, $index] = array_pad(explode('|', $oldKey, 2), 2, '');
+            $oldKelas          = $this->findKelasId($tingkat, $index);
+
+            if ($oldKelas !== null && $oldKelas === (int) $existing['id_kelas']) {
+                $data['id_kelas'] = $this->kelasId($rombel);
+            }
+        }
+
+        return $data;
+    }
+
     /** Hasil query tulis false (DBDebug mati) dijadikan exception agar halaman di-rollback. */
     private function write(mixed $ok, string $what): void
     {
@@ -388,16 +429,9 @@ class PpdbSync
             return $this->kelasCache[$key];
         }
 
-        $row = $this->db->table('tb_kelas')
-            ->where('tingkat', $tingkat)
-            ->where('index_kelas', $index)
-            ->where('deleted_at', null)
-            ->orderBy('id_kelas')
-            ->get()->getRowArray();
+        $id = $this->findKelasId($tingkat, $index);
 
-        if ($row !== null) {
-            $id = (int) $row['id_kelas'];
-        } else {
+        if ($id === null) {
             $this->write($this->db->table('tb_kelas')->insert([
                 'tingkat'     => $tingkat,
                 'index_kelas' => $index,
@@ -408,6 +442,19 @@ class PpdbSync
         }
 
         return $this->kelasCache[$key] = $id;
+    }
+
+    /** Kelas (belum dihapus) untuk tingkat+index tanpa membuat baru. */
+    private function findKelasId(string $tingkat, string $index): ?int
+    {
+        $row = $this->db->table('tb_kelas')
+            ->where('tingkat', $tingkat)
+            ->where('index_kelas', $index)
+            ->where('deleted_at', null)
+            ->orderBy('id_kelas')
+            ->get()->getRowArray();
+
+        return $row === null ? null : (int) $row['id_kelas'];
     }
 
     private function skip(PpdbSyncResult $result, string $ref, string $reason): void

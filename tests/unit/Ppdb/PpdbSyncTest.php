@@ -248,6 +248,86 @@ final class PpdbSyncTest extends CIUnitTestCase
         $this->assertSame(4, (int) $s['ppdb_rombel_id']);
     }
 
+    // ------------------------------------------------ rombel diganti nama di PPDB
+
+    private function renamed(string $index = 'Z'): array
+    {
+        return ['id' => 3, 'name' => 'VII-' . $index, 'tingkat' => 'VII', 'index' => $index];
+    }
+
+    public function testSyncStoresKelasKey(): void
+    {
+        (new PpdbSync($this->fake($this->page([$this->item('P1C-2027-E-001')]))))->run('manual');
+
+        $this->assertSame('VII|A', $this->siswa('P1C-2027-E-001')['ppdb_kelas_key']);
+    }
+
+    public function testRenameMovesNonPromotedStudents(): void
+    {
+        (new PpdbSync($this->fake($this->page([$this->item('P1C-2027-E-001')]))))->run('manual');
+        $viiA = (int) $this->siswa('P1C-2027-E-001')['id_kelas'];
+
+        (new PpdbSync($this->fake($this->page([
+            $this->item('P1C-2027-E-001', ['rombel' => $this->renamed()]),
+        ]))))->run('manual');
+
+        $s = $this->siswa('P1C-2027-E-001');
+        $kelas = $this->db->table('tb_kelas')->where('id_kelas', $s['id_kelas'])->get()->getRowArray();
+        $this->assertNotSame($viiA, (int) $s['id_kelas']);
+        $this->assertSame('Z', $kelas['index_kelas']);
+        $this->assertSame('VII|Z', $s['ppdb_kelas_key']);
+        $this->assertSame(3, (int) $s['ppdb_rombel_id']);
+    }
+
+    public function testRenameKeepsManuallyPromotedStudent(): void
+    {
+        (new PpdbSync($this->fake($this->page([$this->item('P1C-2027-E-001')]))))->run('manual');
+        $viiiA = $this->kelas('VIII', 'A');
+        $this->db->table('tb_siswa')->where('ppdb_ref', 'P1C-2027-E-001')->update(['id_kelas' => $viiiA]);
+
+        (new PpdbSync($this->fake($this->page([
+            $this->item('P1C-2027-E-001', ['rombel' => $this->renamed()]),
+        ]))))->run('manual');
+
+        $s = $this->siswa('P1C-2027-E-001');
+        $this->assertSame($viiiA, (int) $s['id_kelas']);
+        $this->assertSame('VII|Z', $s['ppdb_kelas_key']);
+    }
+
+    public function testNewStudentsAfterRenameJoinMovedClass(): void
+    {
+        (new PpdbSync($this->fake($this->page([$this->item('P1C-2027-E-001')]))))->run('manual');
+
+        (new PpdbSync($this->fake($this->page([
+            $this->item('P1C-2027-E-001', ['rombel' => $this->renamed()]),
+            $this->item('P1C-2027-E-002', ['rombel' => $this->renamed()]),
+        ]))))->run('manual');
+
+        $this->assertSame(
+            (int) $this->siswa('P1C-2027-E-001')['id_kelas'],
+            (int) $this->siswa('P1C-2027-E-002')['id_kelas']
+        );
+    }
+
+    public function testNullKeyIsFilledWithoutMoving(): void
+    {
+        $viiA  = $this->kelas('VII', 'A');
+        $viiiA = $this->kelas('VIII', 'A');
+        $this->seedExisting('P1C-2027-E-001', $viiA, 3);
+        $this->db->table('tb_siswa')->where('ppdb_ref', 'P1C-2027-E-001')->update(['unique_code' => 'UC-1']);
+        $this->seedExisting('P1C-2027-E-002', $viiiA, 3);
+
+        (new PpdbSync($this->fake($this->page([
+            $this->item('P1C-2027-E-001'),
+            $this->item('P1C-2027-E-002'),
+        ]))))->run('manual');
+
+        $this->assertSame($viiA, (int) $this->siswa('P1C-2027-E-001')['id_kelas']);
+        $this->assertSame($viiiA, (int) $this->siswa('P1C-2027-E-002')['id_kelas']);
+        $this->assertSame('VII|A', $this->siswa('P1C-2027-E-001')['ppdb_kelas_key']);
+        $this->assertSame('VII|A', $this->siswa('P1C-2027-E-002')['ppdb_kelas_key']);
+    }
+
     public function testNullRombelKeepsClass(): void
     {
         $viiA = $this->kelas('VII', 'A');
