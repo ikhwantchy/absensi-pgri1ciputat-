@@ -57,11 +57,14 @@
    <h2 style="font-size: 16px; font-weight: 700; margin: 0 0 8px 0;">Status terakhir</h2>
    <p style="margin: 0 0 16px 0;">
       <?php if ($lastAt): ?>
-         <?= esc($lastAt); ?> UTC &middot; <strong><?= esc((string) $lastStatus); ?></strong> &middot; <?= esc((string) $lastMsg); ?>
+         <?= esc($lastAt); ?> WIB &middot; <strong><?= esc((string) $lastStatus); ?></strong> &middot; <?= esc((string) $lastMsg); ?>
       <?php else: ?>
          Belum pernah sinkron.
       <?php endif; ?>
    </p>
+   <?php if (! empty($syncedUntil)): ?>
+      <p style="margin: 0 0 16px 0;">Titik sinkron: <?= esc($syncedUntil); ?> UTC</p>
+   <?php endif; ?>
 
    <div class="table-responsive">
       <table class="table" style="width: 100%;">

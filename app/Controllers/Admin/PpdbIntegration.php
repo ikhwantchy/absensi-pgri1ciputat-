@@ -34,6 +34,7 @@ class PpdbIntegration extends BaseController
             'tokenBad'   => (bool) $cfg['token_unreadable'],
             'secretBad'  => (bool) $cfg['secret_unreadable'],
             'lastAt'     => $cfg['last_sync_at'] ?? null,
+            'syncedUntil' => $cfg['synced_until'] ?? null,
             'lastStatus' => $cfg['last_status'] ?? null,
             'lastMsg'    => $cfg['last_message'] ?? null,
             'logs'       => (new PpdbSyncLogModel())->orderBy('id', 'DESC')->findAll(50),
@@ -44,21 +45,49 @@ class PpdbIntegration extends BaseController
     public function save()
     {
         $baseUrl = trim((string) $this->request->getPost('base_url'));
-        if ($baseUrl === '' || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
-            return redirect()->to('admin/ppdb-integration')->with('error', 'URL PPDB tidak valid.');
+        if ($error = $this->baseUrlError($baseUrl)) {
+            return redirect()->to('admin/ppdb-integration')->with('error', $error);
         }
 
         // Kosong = pertahankan nilai lama.
         $token  = trim((string) $this->request->getPost('token'));
         $secret = trim((string) $this->request->getPost('webhook_secret'));
 
+        // Host berubah: token lama tidak boleh terkirim ke server lain; wajib diisi ulang.
+        $oldHost     = strtolower((string) parse_url((string) ($this->integration->config()['base_url'] ?? ''), PHP_URL_HOST));
+        $hostChanged = $oldHost !== '' && $oldHost !== strtolower((string) parse_url($baseUrl, PHP_URL_HOST));
+        $clearToken  = $hostChanged && $token === '';
+
         $this->integration->saveConfig(
             rtrim($baseUrl, '/'),
-            $token === '' ? null : $token,
+            $clearToken ? '' : ($token === '' ? null : $token),
             $secret === '' ? null : $secret
         );
 
-        return redirect()->to('admin/ppdb-integration')->with('success', 'Pengaturan disimpan.');
+        return redirect()->to('admin/ppdb-integration')->with(
+            'success',
+            $clearToken ? 'Pengaturan disimpan. Host PPDB berubah; isi ulang token.' : 'Pengaturan disimpan.'
+        );
+    }
+
+    /** Wajib https; http hanya untuk localhost. Tanpa user/password di URL. */
+    private function baseUrlError(string $url): ?string
+    {
+        $parts = $url === '' || ! filter_var($url, FILTER_VALIDATE_URL) ? false : parse_url($url);
+        if ($parts === false || empty($parts['host'])) {
+            return 'URL PPDB tidak valid.';
+        }
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            return 'URL PPDB tidak boleh berisi user atau password.';
+        }
+
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $local  = in_array(strtolower($parts['host']), ['localhost', '127.0.0.1'], true);
+        if ($scheme !== 'https' && ! ($scheme === 'http' && $local)) {
+            return 'URL PPDB wajib https:// (http:// hanya untuk localhost).';
+        }
+
+        return null;
     }
 
     public function test()
