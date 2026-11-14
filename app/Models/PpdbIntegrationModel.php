@@ -27,8 +27,14 @@ class PpdbIntegrationModel extends Model
     {
         $row = $this->row();
 
-        $row['token']          = $this->decrypt($row['token'] ?? null);
-        $row['webhook_secret'] = $this->decrypt($row['webhook_secret'] ?? null);
+        $token  = $row['token'] ?? null;
+        $secret = $row['webhook_secret'] ?? null;
+
+        $row['token']             = $this->decrypt($token);
+        $row['webhook_secret']    = $this->decrypt($secret);
+        // Nilai tersimpan tapi tidak terbaca (mis. encryption.key berubah): minta admin isi ulang.
+        $row['token_unreadable']  = $this->isUnreadable($token, $row['token']);
+        $row['secret_unreadable'] = $this->isUnreadable($secret, $row['webhook_secret']);
 
         return $row;
     }
@@ -86,6 +92,20 @@ class PpdbIntegrationModel extends Model
             return $stored;
         }
 
-        return service('encrypter')->decrypt(base64_decode($stored, true));
+        try {
+            $raw = base64_decode($stored, true);
+            if ($raw === false) {
+                return null;
+            }
+
+            return service('encrypter')->decrypt($raw);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function isUnreadable(?string $stored, ?string $plain): bool
+    {
+        return $stored !== null && $stored !== '' && $plain === null;
     }
 }
