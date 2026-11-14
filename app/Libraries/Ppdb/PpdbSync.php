@@ -26,6 +26,9 @@ class PpdbSync
     private const PATH_ACK   = '/api/v1/sync-ack';
     private const MAX_PAGES  = 1000;
 
+    /** Detik mundur dari synced_until agar baris yang commit telat di PPDB tetap terambil. */
+    private const OVERLAP_SECONDS = 60;
+
     private ?PpdbApiClient $api;
     private ?string $configError = null;
     private BaseConnection $db;
@@ -96,7 +99,8 @@ class PpdbSync
         $syncedUntil  = $config['synced_until'] ?? null;
         $baseQuery    = [];
         if ($syncedUntil !== null && $syncedUntil !== '') {
-            $baseQuery['updated_since'] = $this->toIso($syncedUntil);
+            // synced_until tetap server_time asli; hanya permintaan yang dimundurkan (upsert idempoten).
+            $baseQuery['updated_since'] = $this->toIso($syncedUntil, self::OVERLAP_SECONDS);
         }
 
         $serverTime = null;
@@ -166,7 +170,7 @@ class PpdbSync
         try {
             $this->api->post(self::PATH_ACK, ['synced_until' => $serverTime->format('Y-m-d\TH:i:s\Z')]);
         } catch (Throwable $e) {
-            $parts[] = 'Ack ke PPDB gagal (' . $e->getMessage() . '); dikirim ulang pada sinkron berikutnya.';
+            $parts[] = 'Ack ke PPDB gagal (' . $e->getMessage() . '). Data tetap tersimpan; sinkron berikutnya mengirim ack sendiri.';
         }
 
         $result->message = implode(' ', $parts);
@@ -207,10 +211,12 @@ class PpdbSync
         return $time->setTimezone(new DateTimeZone('UTC'));
     }
 
-    /** "Y-m-d H:i:s" (UTC) dari DB menjadi ISO 8601 dengan Z. */
-    private function toIso(string $utc): string
+    /** "Y-m-d H:i:s" (UTC) dari DB menjadi ISO 8601 dengan Z, opsional dimundurkan beberapa detik. */
+    private function toIso(string $utc, int $minusSeconds = 0): string
     {
-        return (new DateTimeImmutable($utc, new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s\Z');
+        return (new DateTimeImmutable($utc, new DateTimeZone('UTC')))
+            ->modify("-{$minusSeconds} seconds")
+            ->format('Y-m-d\TH:i:s\Z');
     }
 
     private function processPage(array $items, PpdbSyncResult $result): void

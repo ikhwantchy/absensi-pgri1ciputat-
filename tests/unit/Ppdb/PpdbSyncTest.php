@@ -394,7 +394,8 @@ final class PpdbSyncTest extends CIUnitTestCase
         $this->assertSame('ok', $result->status);
         $this->assertSame(2, $result->created);
         $this->assertCount(2, $fake->gets);
-        $this->assertSame('2026-11-14T04:00:00Z', $fake->gets[0]['query']['updated_since']);
+        // Mundur 60 detik dari synced_until: baris yang commit telat di PPDB tetap terambil (upsert idempoten).
+        $this->assertSame('2026-11-14T03:59:00Z', $fake->gets[0]['query']['updated_since']);
         $this->assertArrayNotHasKey('cursor', $fake->gets[0]['query']);
         $this->assertSame('CUR-2', $fake->gets[1]['query']['cursor']);
 
@@ -471,7 +472,7 @@ final class PpdbSyncTest extends CIUnitTestCase
         $result = (new PpdbSync($retry))->run('webhook');
 
         $this->assertSame('ok', $result->status);
-        $this->assertSame('2026-11-14T04:00:00Z', $retry->gets[0]['query']['updated_since']);
+        $this->assertSame('2026-11-14T03:59:00Z', $retry->gets[0]['query']['updated_since']);
         $this->assertSame(2, $this->rows('tb_siswa'));
         $this->assertSame(1, $this->db->table('tb_siswa')->where('ppdb_ref', 'P1C-2027-E-001')->countAllResults());
         $this->assertSame(1, $this->rows('tb_kelas'));
@@ -575,6 +576,7 @@ final class PpdbSyncTest extends CIUnitTestCase
         $this->assertSame('ok', $result->status);
         $this->assertSame('2026-11-14 05:12:00', $this->syncedUntil());
         $this->assertStringContainsString('ack', strtolower($result->message));
+        $this->assertStringContainsString('sinkron berikutnya mengirim ack sendiri', $result->message);
         $this->assertCount(1, $fake->posts);
     }
 
