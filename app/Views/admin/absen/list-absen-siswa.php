@@ -83,7 +83,7 @@ $total = count($data ?? []);
                <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
                   <div class="flex items-center gap-3">
                      <div style="width: 40px !important; height: 40px !important; border-radius: 50% !important; background: #<?= $bg; ?>; color: #ffffff; font-size: 14px; font-weight: 700; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <?= $initials; ?>
+                        <?= esc($initials); ?>
                      </div>
                      <span style="font-size: 15px; font-weight: 600; color: #1e293b;"><?= esc($row['nama_siswa']); ?></span>
                   </div>

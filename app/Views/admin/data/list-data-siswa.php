@@ -26,9 +26,9 @@
                      </div>
                   </td>
                   <td style="padding: 18px 20px; font-size: 14px; font-weight: 600; color: #64748b; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $i; ?></td>
-                  <td style="padding: 18px 20px; font-size: 14px; font-weight: 700; color: var(--primary); border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $value['nis']; ?></td>
+                  <td style="padding: 18px 20px; font-size: 14px; font-weight: 700; color: var(--primary); border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= esc($value['nis']); ?></td>
                   <td style="padding: 18px 20px; font-size: 15px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
-                     <?= $value['nama_siswa']; ?>
+                     <?= esc($value['nama_siswa']); ?>
                      <?php if (!empty($value['ppdb_ref'])): ?>
                         <span style="margin-left: 8px; font-size: 11px; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 3px 8px; border-radius: 6px;">PPDB</span>
                      <?php endif; ?>
@@ -40,7 +40,7 @@
                   <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
                      <span style="font-weight: 700; color: #334155; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; font-size: 13px; display: inline-block; white-space: nowrap;"><?= $value['kelas']; ?></span>
                   </td>
-                  <td style="padding: 18px 20px; font-size: 14px; color: #475569; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $value['no_hp'] ?: '-'; ?></td>
+                  <td style="padding: 18px 20px; font-size: 14px; color: #475569; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= esc($value['no_hp'] ?: '-'); ?></td>
                   <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
                      <div class="flex items-center justify-center gap-2">
                         <a title="Edit" href="<?= base_url('admin/siswa/edit/' . $value['id_siswa']); ?>"

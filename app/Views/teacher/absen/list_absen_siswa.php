@@ -42,8 +42,8 @@
                         ?>
                         <tr>
                             <td><?= $no; ?></td>
-                            <td><?= $value['nis']; ?></td>
-                            <td><b><?= $value['nama_siswa']; ?></b></td>
+                            <td><?= esc($value['nis']); ?></td>
+                            <td><b><?= esc($value['nama_siswa']); ?></b></td>
                             <td>
                                 <p class="p-2 my-auto w-100 badge badge-<?= $kehadiran['color']; ?> text-center">
                                     <b><?= $kehadiran['text']; ?></b>
@@ -54,7 +54,7 @@
                             <td><?= $value['keterangan'] ?? '-'; ?></td>
                             <td>
                                 <button data-bs-toggle="modal" data-bs-target="#ubahModal" onclick="getDataKehadiran(<?= $value['id_presensi'] ?? '-1'; ?>, <?= $value['id_siswa']; ?>)" class="btn btn-info p-2"
-                                    id="<?= $value['nis']; ?>">
+                                    id="<?= esc($value['nis']); ?>">
                                     <i class="material-icons">edit</i>
                                     Edit
                                 </button>

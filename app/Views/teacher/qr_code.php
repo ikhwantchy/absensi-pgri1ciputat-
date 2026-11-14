@@ -88,8 +88,8 @@
                           foreach ($siswa as $s): ?>
                             <tr>
                               <td><?= $i++; ?></td>
-                              <td><?= $s['nis']; ?></td>
-                              <td><?= $s['nama_siswa']; ?></td>
+                              <td><?= esc($s['nis']); ?></td>
+                              <td><?= esc($s['nama_siswa']); ?></td>
                               <td class="text-center">
                                 <a href="<?= base_url('admin/qr/siswa/' . $s['id_siswa'] . '/download'); ?>" class="btn btn-info btn-sm">
                                   <i class="material-icons">download</i> Download QR
@@ -117,10 +117,10 @@
   const dataSiswa = [
     <?php foreach ($siswa as $value) {
       echo "{
-              'nama' : `$value[nama_siswa]`,
+              'nama' : " . json_encode($value['nama_siswa'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ",
               'unique_code' : `$value[unique_code]`,
               'id_kelas' : `$value[id_kelas]`,
-              'nomor' : `$value[nis]`
+              'nomor' : " . json_encode($value['nis'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . "
             },";
     }
     ; ?>
