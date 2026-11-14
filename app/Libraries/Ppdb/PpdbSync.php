@@ -69,10 +69,17 @@ class PpdbSync
             return $this->finish($trigger, new PpdbSyncResult('failed', $this->configError ?? 'Klien API PPDB tidak tersedia.'));
         }
 
-        $lock = @fopen(WRITEPATH . 'ppdb-sync.lock', 'c');
+        $lockPath = WRITEPATH . 'ppdb-sync.lock';
+        $lock     = @fopen($lockPath, 'c');
         if ($lock === false) {
-            return $this->finish($trigger, new PpdbSyncResult('failed', 'Tidak bisa membuka file lock sinkron di writable/.'));
+            // Biasanya file lock dibuat user lain (cron vs php-fpm) tanpa izin tulis.
+            return $this->finish($trigger, new PpdbSyncResult(
+                'skipped',
+                "File lock {$lockPath} tidak bisa dibuka (izin file?). Sinkron dilewati; samakan user cron dan web server atau hapus file itu."
+            ));
         }
+        // Cron dan php-fpm bisa beda user: izinkan keduanya membuka file lock yang sama.
+        @chmod($lockPath, 0666);
 
         try {
             if (! flock($lock, LOCK_EX | LOCK_NB)) {
