@@ -161,9 +161,10 @@ class KelasController extends BaseController
         $kelas = $this->kelasModel->getKelas($id);
         if (!empty($kelas)) {
             $siswaModel = new \App\Models\SiswaModel();
-            if (!empty($siswaModel->getSiswaCountByKelas($id))) {
-                $this->session->setFlashdata('error', 'Kelas Masih Memiliki Siswa Aktif');
-                exit();
+            // Hitung juga siswa nonaktif: hapus kelas meng-cascade tb_siswa dan presensinya.
+            if (!empty($siswaModel->getSiswaCountByKelas($id, true))) {
+                $this->session->setFlashdata('error', 'Kelas masih memiliki siswa');
+                return;
             }
             if ($this->kelasModel->deleteKelas($id)) {
                 $this->session->setFlashdata('success', 'Data berhasil dihapus');

@@ -66,6 +66,9 @@ $routes->group('scanner', function (RouteCollection $routes) {
 
 
 
+// Webhook dari PPDB (diautentikasi lewat signature HMAC, bukan login)
+$routes->post('api/ppdb/webhook', 'Api\PpdbWebhook::receive');
+
 // Admin
 $routes->group('admin', function (RouteCollection $routes) {
    // Admin dashboard
@@ -211,6 +214,14 @@ $routes->group('admin', function (RouteCollection $routes) {
       $routes->post('db/restore', 'Backup::dbRestore');
       $routes->get('photos/backup', 'Backup::photosBackup');
       $routes->post('photos/restore', 'Backup::photosRestore');
+   });
+
+   // Integrasi PPDB
+   $routes->group('ppdb-integration', ['namespace' => 'App\Controllers\Admin'], function ($routes) {
+      $routes->get('', 'PpdbIntegration::index');
+      $routes->post('save', 'PpdbIntegration::save');
+      $routes->post('test', 'PpdbIntegration::test');
+      $routes->post('sync', 'PpdbIntegration::sync');
    });
 
    // WhatsApp Gateway

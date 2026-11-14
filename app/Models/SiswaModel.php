@@ -15,7 +15,12 @@ class SiswaModel extends Model
          'jenis_kelamin',
          'no_hp',
          'unique_code',
-         'rfid_code'
+         'rfid_code',
+         'ppdb_ref',
+         'is_active',
+         'ppdb_synced_at',
+         'ppdb_rombel_id',
+         'ppdb_kelas_key'
       ];
    }
 
@@ -45,7 +50,7 @@ class SiswaModel extends Model
       return $this->where([$this->primaryKey => $id])->first();
    }
 
-   public function getAllSiswaWithKelas($kelas = null, $jurusan = null, $index = null)
+   public function getAllSiswaWithKelas($kelas = null, $jurusan = null, $index = null, bool $includeInactive = false)
    {
       $query = $this->select('tb_siswa.*, tb_kelas.tingkat, tb_kelas.index_kelas, tb_jurusan.jurusan, CONCAT(tb_kelas.tingkat, " ", tb_kelas.index_kelas) as kelas')
          ->join(
@@ -58,6 +63,9 @@ class SiswaModel extends Model
             'LEFT'
          );
 
+      if (!$includeInactive) {
+         $query->where('tb_siswa.is_active', 1);
+      }
       if (!empty($kelas)) {
          $query->where('tb_kelas.tingkat', $kelas);
       }
@@ -80,7 +88,7 @@ class SiswaModel extends Model
             'LEFT'
          )
          ->join('tb_jurusan', 'tb_kelas.id_jurusan = tb_jurusan.id', 'left')
-         ->where(['tb_siswa.id_kelas' => $id_kelas])
+         ->where(['tb_siswa.id_kelas' => $id_kelas, 'tb_siswa.is_active' => 1])
          ->orderBy('nama_siswa')
          ->findAll();
    }
@@ -111,8 +119,16 @@ class SiswaModel extends Model
       ]);
    }
 
-   public function getSiswaCountByKelas($kelasId = null)
+   /**
+    * @param bool $includeInactive true untuk guard hapus kelas: siswa nonaktif
+    *                              ikut terhapus (cascade) bila kelas dihapus.
+    */
+   public function getSiswaCountByKelas($kelasId = null, bool $includeInactive = false)
    {
+      if (! $includeInactive) {
+         $this->where('tb_siswa.is_active', 1);
+      }
+
       if (empty($kelasId)) {
          return $this->countAllResults();
       }
@@ -125,6 +141,7 @@ class SiswaModel extends Model
 
       $kelasIds = $tree;
       if (countItems($kelasIds) < 1) {
+         $this->builder()->resetQuery();
          return 0;
       }
 

@@ -79,7 +79,7 @@ class DataSiswa extends BaseController
       $jurusan = $this->request->getVar('jurusan') ?? null;
       $index = $this->request->getVar('index') ?? null;
 
-      $result = $this->siswaModel->getAllSiswaWithKelas($kelas, $jurusan, $index);
+      $result = $this->siswaModel->getAllSiswaWithKelas($kelas, $jurusan, $index, true);
 
       $data = [
          'data' => $result,

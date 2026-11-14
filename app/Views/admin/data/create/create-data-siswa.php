@@ -38,7 +38,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">NIS <span class="text-red-500">*</span></label>
                         <input type="text" id="nis" name="nis"
                            class="form-control <?= $validation->getError('nis') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Contoh: 2023001" value="<?= old('nis') ?? $oldInput['nis'] ?? '' ?>">
+                           placeholder="Contoh: 2023001" value="<?= esc(old('nis') ?? $oldInput['nis'] ?? '') ?>">
                         <?php if ($validation->getError('nis')): ?>
                            <p class="mt-1 text-sm text-red-500"><?= $validation->getError('nis'); ?></p>
                         <?php endif; ?>
@@ -48,7 +48,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
                         <input type="text" id="nama" name="nama"
                            class="form-control <?= $validation->getError('nama') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Masukkan nama lengkap" value="<?= old('nama') ?? $oldInput['nama'] ?? '' ?>" required>
+                           placeholder="Masukkan nama lengkap" value="<?= esc(old('nama') ?? $oldInput['nama'] ?? '') ?>" required>
                         <?php if ($validation->getError('nama')): ?>
                            <p class="mt-1 text-sm text-red-500"><?= $validation->getError('nama'); ?></p>
                         <?php endif; ?>
@@ -97,7 +97,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">No HP</label>
                         <input type="number" id="hp" name="no_hp"
                            class="form-control <?= $validation->getError('no_hp') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Contoh: 08123456789" value="<?= old('no_hp') ?? $oldInput['no_hp'] ?? '' ?>">
+                           placeholder="Contoh: 08123456789" value="<?= esc(old('no_hp') ?? $oldInput['no_hp'] ?? '') ?>">
                         <?php if ($validation->getError('no_hp')): ?>
                            <p class="mt-1 text-sm text-red-500"><?= $validation->getError('no_hp'); ?></p>
                         <?php endif; ?>

@@ -71,7 +71,7 @@
       ?>
       <tr>
          <td align="center"><?= $i + 1; ?></td>
-         <td><?= $siswa['nama_siswa']; ?></td>
+         <td><?= esc($siswa['nama_siswa']); ?></td>
          <?php foreach ($listAbsen as $absen): ?>
             <?= kehadiran($absen[$i]['id_kehadiran'] ?? ($absen['lewat'] ? 5 : 4)); ?>
          <?php endforeach; ?>

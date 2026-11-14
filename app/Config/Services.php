@@ -29,4 +29,17 @@ class Services extends BaseService
      *     return new \CodeIgniter\Example();
      * }
      */
+
+    /**
+     * Sinkron siswa PPDB. Tidak dibagi (non-shared) agar tiap pemanggil dapat
+     * instance baru; tes memakai Services::injectMock('ppdbSync', ...).
+     */
+    public static function ppdbSync(bool $getShared = false): \App\Libraries\Ppdb\PpdbSync
+    {
+        if ($getShared) {
+            return static::getSharedInstance('ppdbSync');
+        }
+
+        return new \App\Libraries\Ppdb\PpdbSync();
+    }
 }
