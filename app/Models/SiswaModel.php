@@ -118,10 +118,18 @@ class SiswaModel extends Model
       ]);
    }
 
-   public function getSiswaCountByKelas($kelasId = null)
+   /**
+    * @param bool $includeInactive true untuk guard hapus kelas: siswa nonaktif
+    *                              ikut terhapus (cascade) bila kelas dihapus.
+    */
+   public function getSiswaCountByKelas($kelasId = null, bool $includeInactive = false)
    {
+      if (! $includeInactive) {
+         $this->where('tb_siswa.is_active', 1);
+      }
+
       if (empty($kelasId)) {
-         return $this->where('tb_siswa.is_active', 1)->countAllResults();
+         return $this->countAllResults();
       }
 
       $tree = array();
@@ -132,10 +140,11 @@ class SiswaModel extends Model
 
       $kelasIds = $tree;
       if (countItems($kelasIds) < 1) {
+         $this->builder()->resetQuery();
          return 0;
       }
 
-      return $this->whereIn('tb_siswa.id_kelas', $kelasIds, false)->where('tb_siswa.is_active', 1)->countAllResults();
+      return $this->whereIn('tb_siswa.id_kelas', $kelasIds, false)->countAllResults();
    }
 
    //generate CSV object
