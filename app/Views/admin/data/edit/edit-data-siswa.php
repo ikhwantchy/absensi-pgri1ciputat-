@@ -32,6 +32,9 @@
                <form action="<?= base_url('admin/siswa/edit'); ?>" method="post" class="space-y-6">
                   <?= csrf_field() ?>
                   <?php $validation = \Config\Services::validation(); ?>
+                  <?php if (!empty($data['ppdb_ref'])): ?>
+                     <div class="p-3 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-sm">Data ini dikelola PPDB; ubah di PPDB.</div>
+                  <?php endif; ?>
 
                   <input type="hidden" name="id" value="<?= $data['id_siswa']; ?>">
 

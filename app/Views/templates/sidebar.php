@@ -22,6 +22,7 @@ if (is_wali_kelas()) {
       ['title' => 'Pengaturan',        'url' => 'admin/general-settings',  'icon' => 'settings',     'context' => 'general_settings','visible' => is_superadmin() || is_kepsek()],
       ['title' => 'Backup & Restore',  'url' => 'admin/backup',            'icon' => 'backup',       'context' => 'backup',          'visible' => is_superadmin()],
       ['title' => 'WhatsApp Gateway',  'url' => 'admin/whatsapp',          'icon' => 'settings_input_antenna', 'context' => 'whatsapp', 'visible' => is_superadmin()],
+      ['title' => 'Integrasi PPDB',    'url' => 'admin/ppdb-integration',  'icon' => 'sync_alt',     'context' => 'ppdb-integration', 'visible' => is_superadmin()],
    ];
 }
 
