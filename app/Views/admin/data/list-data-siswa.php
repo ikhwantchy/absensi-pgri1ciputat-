@@ -29,6 +29,9 @@
                   <td style="padding: 18px 20px; font-size: 14px; font-weight: 700; color: var(--primary); border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $value['nis']; ?></td>
                   <td style="padding: 18px 20px; font-size: 15px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
                      <?= $value['nama_siswa']; ?>
+                     <?php if (isset($value['is_active']) && (int) $value['is_active'] === 0): ?>
+                        <span style="margin-left: 8px; font-size: 11px; font-weight: 700; color: #b91c1c; background: #fee2e2; padding: 3px 8px; border-radius: 6px;">Nonaktif</span>
+                     <?php endif; ?>
                   </td>
                   <td style="padding: 18px 20px; font-size: 14px; color: #475569; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $value['jenis_kelamin']; ?></td>
                   <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">

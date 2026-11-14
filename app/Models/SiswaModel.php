@@ -15,7 +15,11 @@ class SiswaModel extends Model
          'jenis_kelamin',
          'no_hp',
          'unique_code',
-         'rfid_code'
+         'rfid_code',
+         'ppdb_ref',
+         'is_active',
+         'ppdb_synced_at',
+         'ppdb_rombel_id'
       ];
    }
 
@@ -45,7 +49,7 @@ class SiswaModel extends Model
       return $this->where([$this->primaryKey => $id])->first();
    }
 
-   public function getAllSiswaWithKelas($kelas = null, $jurusan = null, $index = null)
+   public function getAllSiswaWithKelas($kelas = null, $jurusan = null, $index = null, bool $includeInactive = false)
    {
       $query = $this->select('tb_siswa.*, tb_kelas.tingkat, tb_kelas.index_kelas, tb_jurusan.jurusan, CONCAT(tb_kelas.tingkat, " ", tb_kelas.index_kelas) as kelas')
          ->join(
@@ -58,6 +62,9 @@ class SiswaModel extends Model
             'LEFT'
          );
 
+      if (!$includeInactive) {
+         $query->where('tb_siswa.is_active', 1);
+      }
       if (!empty($kelas)) {
          $query->where('tb_kelas.tingkat', $kelas);
       }
@@ -80,7 +87,7 @@ class SiswaModel extends Model
             'LEFT'
          )
          ->join('tb_jurusan', 'tb_kelas.id_jurusan = tb_jurusan.id', 'left')
-         ->where(['tb_siswa.id_kelas' => $id_kelas])
+         ->where(['tb_siswa.id_kelas' => $id_kelas, 'tb_siswa.is_active' => 1])
          ->orderBy('nama_siswa')
          ->findAll();
    }
@@ -114,7 +121,7 @@ class SiswaModel extends Model
    public function getSiswaCountByKelas($kelasId = null)
    {
       if (empty($kelasId)) {
-         return $this->countAllResults();
+         return $this->where('tb_siswa.is_active', 1)->countAllResults();
       }
 
       $tree = array();
@@ -128,7 +135,7 @@ class SiswaModel extends Model
          return 0;
       }
 
-      return $this->whereIn('tb_siswa.id_kelas', $kelasIds, false)->countAllResults();
+      return $this->whereIn('tb_siswa.id_kelas', $kelasIds, false)->where('tb_siswa.is_active', 1)->countAllResults();
    }
 
    //generate CSV object

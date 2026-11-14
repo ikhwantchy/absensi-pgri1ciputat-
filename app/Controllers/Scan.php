@@ -67,6 +67,9 @@ class Scan extends BaseController
             $result = NULL;
          }
       } else {
+         if (isset($result['is_active']) && (int) $result['is_active'] === 0) {
+            return $this->showErrorView('Siswa nonaktif');
+         }
          $status = true;
       }
 

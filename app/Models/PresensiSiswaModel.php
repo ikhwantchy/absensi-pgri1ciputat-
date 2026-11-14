@@ -79,6 +79,7 @@ class PresensiSiswaModel extends Model implements PresensiInterface
             'left'
          )
          ->where("tb_siswa.id_kelas", $idKelas)
+         ->where("tb_siswa.is_active", 1)
          ->orderBy("nama_siswa")
          ->get()
          ->getResultArray();
@@ -91,6 +92,8 @@ class PresensiSiswaModel extends Model implements PresensiInterface
          "tb_presensi_siswa.id_siswa = tb_siswa.id_siswa AND tb_presensi_siswa.tanggal = '$tanggal'",
          'right'
       );
+
+      $this->where('tb_siswa.is_active', 1);
 
       if ($idKelas) {
          $this->where('tb_siswa.id_kelas', $idKelas);
