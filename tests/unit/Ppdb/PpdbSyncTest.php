@@ -398,20 +398,93 @@ final class PpdbSyncTest extends CIUnitTestCase
         $this->assertSame('2026-11-14 05:12:00', $this->syncedUntil());
     }
 
-    public function testErrorInsidePageRollsBackThatPage(): void
+    public function testDbErrorInsidePageRollsBackThatPage(): void
     {
+        // Kegagalan DB sungguhan: trigger SQLite menolak insert siswa kedua.
+        $this->db->query("CREATE TRIGGER tolak_002 BEFORE INSERT ON tb_siswa
+            WHEN NEW.ppdb_ref = 'P1C-2027-E-002'
+            BEGIN SELECT RAISE(ABORT, 'db rusak'); END");
+
         $fake = $this->fake($this->page([
             $this->item('P1C-2027-E-001'),
-            $this->item('P1C-2027-E-002', ['rombel' => ['id' => 9, 'name' => '?', 'tingkat' => '', 'index' => 'B']]),
+            $this->item('P1C-2027-E-002'),
         ]));
 
-        $result = (new PpdbSync($fake))->run('manual');
+        try {
+            $result = (new PpdbSync($fake))->run('manual');
+        } finally {
+            // Bersihkan trigger agar tidak memengaruhi tes lain.
+            $this->db->query('DROP TRIGGER IF EXISTS tolak_002');
+        }
 
         $this->assertSame('failed', $result->status);
+        $this->assertStringContainsString('Gagal insert siswa P1C-2027-E-002', $result->message);
         $this->assertSame(0, $result->created);
         $this->assertSame(0, $this->rows('tb_siswa'));
         $this->assertSame(0, $this->rows('tb_kelas'));
         $this->assertSame(self::OLD_SYNC, $this->syncedUntil());
+        $this->assertSame([], $fake->posts);
+    }
+
+    public static function malformedRombels(): array
+    {
+        return [
+            'tingkat kosong' => [['id' => 9, 'name' => '?', 'tingkat' => '', 'index' => 'B']],
+            'index kosong'   => [['id' => 9, 'name' => '?', 'tingkat' => 'VII', 'index' => '']],
+            'tanpa id'       => [['name' => 'VII-B', 'tingkat' => 'VII', 'index' => 'B']],
+            'id kosong'      => [['id' => null, 'name' => 'VII-B', 'tingkat' => 'VII', 'index' => 'B']],
+        ];
+    }
+
+    /**
+     * @dataProvider malformedRombels
+     */
+    public function testMalformedRombelOnNewItemIsSkipped(array $rombel): void
+    {
+        $fake = $this->fake($this->page([
+            $this->item('P1C-2027-E-001'),
+            $this->item('P1C-2027-E-002', ['rombel' => $rombel]),
+        ]));
+
+        $result = (new PpdbSync($fake))->run('manual');
+
+        $this->assertSame('ok', $result->status);
+        $this->assertSame(1, $result->created);
+        $this->assertSame(1, $result->skipped);
+        $this->assertStringContainsString('rombel tidak lengkap', $result->message);
+        $this->assertSame(1, $this->rows('tb_siswa'));
+        $this->assertSame(1, $this->rows('tb_kelas'));
+        $this->assertSame('2026-11-14 05:12:00', $this->syncedUntil());
+        $this->assertCount(1, $fake->posts);
+    }
+
+    /**
+     * @dataProvider malformedRombels
+     */
+    public function testMalformedRombelOnExistingKeepsClassAndUpdatesFields(array $rombel): void
+    {
+        $viiA = $this->kelas('VII', 'A');
+        $this->seedExisting('P1C-2027-E-001', $viiA, 3);
+
+        $result = (new PpdbSync($this->fake($this->page([
+            $this->item('P1C-2027-E-001', [
+                'rombel' => $rombel, 'nama' => 'Nama Baru', 'nis' => '2027999',
+                'jenis_kelamin' => 'Perempuan', 'no_hp' => '0811', 'aktif' => false,
+            ]),
+        ]))))->run('manual');
+
+        $this->assertSame('ok', $result->status);
+        $this->assertSame(1, $result->deactivated);
+        $s = $this->siswa('P1C-2027-E-001');
+        $this->assertSame($viiA, (int) $s['id_kelas']);
+        $this->assertSame(3, (int) $s['ppdb_rombel_id']);
+        $this->assertSame('Nama Baru', $s['nama_siswa']);
+        $this->assertSame('2027999', $s['nis']);
+        $this->assertSame('Perempuan', $s['jenis_kelamin']);
+        $this->assertSame('0811', $s['no_hp']);
+        $this->assertSame(0, (int) $s['is_active']);
+        $this->assertSame(1, $this->rows('tb_kelas'));
+        $this->assertSame('2026-11-14 05:12:00', $this->syncedUntil());
     }
 
     public function testAckFailureDoesNotFailSync(): void

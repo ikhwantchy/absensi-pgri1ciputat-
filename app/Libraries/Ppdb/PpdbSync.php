@@ -231,6 +231,8 @@ class PpdbSync
             $this->db->transCommit();
         } catch (Throwable $e) {
             $this->db->transRollback();
+            // Tanpa reset, transStatus tetap false dan transaksi berikutnya di koneksi ini ikut gagal.
+            $this->db->resetTransStatus();
             // Kelas yang baru dibuat ikut di-rollback; jangan pakai id dari cache.
             $this->kelasCache = [];
             [$result->created, $result->updated, $result->deactivated, $result->skipped] = array_values($counts);
@@ -259,12 +261,20 @@ class PpdbSync
         $nis    = isset($item['nis']) && trim((string) $item['nis']) !== '' ? trim((string) $item['nis']) : null;
         $noHp   = (string) ($item['no_hp'] ?? '');
         $aktif  = ($item['aktif'] ?? false) === true;
-        $rombel = is_array($item['rombel'] ?? null) ? $item['rombel'] : null;
+        $rombelRaw = $item['rombel'] ?? null;
+        $rombel    = $this->normalizeRombel($rombelRaw);
+        // Rombel ada tapi rusak: data PPDB, bukan kegagalan infrastruktur; jangan blokir sinkron.
+        $rombelBroken = $rombelRaw !== null && $rombel === null;
         $now    = date('Y-m-d H:i:s');
 
         $existing = $this->db->table('tb_siswa')->where('ppdb_ref', $ref)->get()->getRowArray();
 
         if ($existing === null) {
+            if ($rombelBroken) {
+                $this->skip($result, $ref, 'rombel tidak lengkap');
+
+                return;
+            }
             if ($rombel === null) {
                 $this->skip($result, $ref, 'belum punya rombel');
 
@@ -281,7 +291,7 @@ class PpdbSync
                 return;
             }
 
-            $this->db->table('tb_siswa')->insert([
+            $this->write($this->db->table('tb_siswa')->insert([
                 'nis'            => $nis,
                 'nama_siswa'     => $nama,
                 'id_kelas'       => $this->kelasId($rombel),
@@ -289,10 +299,10 @@ class PpdbSync
                 'no_hp'          => $noHp,
                 'unique_code'    => generateToken(),
                 'ppdb_ref'       => $ref,
-                'ppdb_rombel_id' => (int) $rombel['id'],
+                'ppdb_rombel_id' => $rombel['id'],
                 'is_active'      => 1,
                 'ppdb_synced_at' => $now,
-            ]);
+            ]), "insert siswa {$ref}");
             $result->created++;
 
             return;
@@ -311,12 +321,19 @@ class PpdbSync
         }
 
         // Kelas hanya pindah bila rombel benar-benar diganti di PPDB; kenaikan manual di siab dipertahankan.
-        if ($rombel !== null && (int) $rombel['id'] !== (int) ($existing['ppdb_rombel_id'] ?? 0)) {
+        // Rombel null atau rusak: kelas lama tetap.
+        if ($rombel !== null && $rombel['id'] !== (int) ($existing['ppdb_rombel_id'] ?? 0)) {
             $data['id_kelas']       = $this->kelasId($rombel);
-            $data['ppdb_rombel_id'] = (int) $rombel['id'];
+            $data['ppdb_rombel_id'] = $rombel['id'];
         }
 
-        $this->db->table('tb_siswa')->where('id_siswa', $existing['id_siswa'])->update($data);
+        $this->write(
+            $this->db->table('tb_siswa')->where('id_siswa', $existing['id_siswa'])->update($data),
+            "update siswa {$ref}"
+        );
+        if ($rombelBroken) {
+            $this->skipNotes[] = "{$ref} (rombel tidak lengkap; kelas tidak diubah)";
+        }
 
         if (! $aktif && (int) $existing['is_active'] === 1) {
             $result->deactivated++;
@@ -325,13 +342,46 @@ class PpdbSync
         }
     }
 
-    private function kelasId(array $rombel): int
+    /**
+     * Rombel valid menjadi ['id' => int, 'tingkat' => string, 'index' => string];
+     * null bila rombel null atau tidak lengkap (id/tingkat/index kosong).
+     *
+     * @return array{id: int, tingkat: string, index: string}|null
+     */
+    private function normalizeRombel(mixed $rombel): ?array
     {
+        if (! is_array($rombel)) {
+            return null;
+        }
+
+        $id      = $rombel['id'] ?? null;
         $tingkat = trim((string) ($rombel['tingkat'] ?? ''));
         $index   = trim((string) ($rombel['index'] ?? ''));
-        if ($tingkat === '' || $index === '' || ! isset($rombel['id'])) {
-            throw new RuntimeException('Data rombel PPDB tidak lengkap (id/tingkat/index).');
+
+        $validId = is_int($id) || (is_string($id) && ctype_digit($id));
+        if (! $validId || (int) $id <= 0 || $tingkat === '' || $index === '') {
+            return null;
         }
+
+        return ['id' => (int) $id, 'tingkat' => $tingkat, 'index' => $index];
+    }
+
+    /** Hasil query tulis false (DBDebug mati) dijadikan exception agar halaman di-rollback. */
+    private function write(mixed $ok, string $what): void
+    {
+        if ($ok === false) {
+            $error  = $this->db->error();
+            // SQLite bisa sudah mengosongkan errornya ("not an error"); detailnya tetap di log CI.
+            $detail = ! empty($error['code']) && ! empty($error['message']) ? $error['message'] : 'kesalahan database (lihat log)';
+            throw new RuntimeException("Gagal {$what}: {$detail}.");
+        }
+    }
+
+    /** @param array{id: int, tingkat: string, index: string} $rombel */
+    private function kelasId(array $rombel): int
+    {
+        $tingkat = $rombel['tingkat'];
+        $index   = $rombel['index'];
 
         $key = $tingkat . '|' . $index;
         if (isset($this->kelasCache[$key])) {
@@ -348,12 +398,12 @@ class PpdbSync
         if ($row !== null) {
             $id = (int) $row['id_kelas'];
         } else {
-            $this->db->table('tb_kelas')->insert([
+            $this->write($this->db->table('tb_kelas')->insert([
                 'tingkat'     => $tingkat,
                 'index_kelas' => $index,
                 'id_jurusan'  => 1,
                 'created_at'  => date('Y-m-d H:i:s'),
-            ]);
+            ]), "membuat kelas {$tingkat}-{$index}");
             $id = (int) $this->db->insertID();
         }
 
