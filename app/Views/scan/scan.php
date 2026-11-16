@@ -13,23 +13,14 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content'); ?>
-<?php
-$oppBtn = ($waktu == 'Masuk' ? 'pulang' : 'masuk');
-?>
-
 <div class="mx-auto max-w-5xl space-y-4">
-   <nav class="tabs w-fit" aria-label="Mode absen">
-      <a href="<?= base_url('scan/masuk'); ?>" class="<?= $waktu == 'Masuk' ? 'active' : '' ?>">Masuk</a>
-      <a href="<?= base_url('scan/pulang'); ?>" class="<?= $waktu == 'Pulang' ? 'active' : '' ?>">Pulang</a>
-   </nav>
-
    <div class="grid items-start gap-4 lg:grid-cols-3">
       <div class="space-y-4 lg:col-span-2">
          <div class="card">
             <div class="card-head">
                <div>
-                  <h2 class="card-title">Absen <?= strtolower($waktu); ?></h2>
-                  <p class="card-sub">Tempelkan kartu RFID pada reader USB.</p>
+                  <h2 class="card-title">Tap kartu</h2>
+                  <p class="card-sub">Tap pertama tercatat masuk, tap berikutnya pulang.</p>
                </div>
                <span id="statusBadge" class="status status-success">
                   <i class="material-icons">usb</i>
@@ -57,9 +48,9 @@ $oppBtn = ($waktu == 'Masuk' ? 'pulang' : 'masuk');
             <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Reader USB 125 kHz (EM4100/TK4100) mengirim kode kartu lalu menekan Enter otomatis.</span></span>
          </div>
          <ol class="card-body list-decimal space-y-1.5 pl-8 text-sm text-slate-600">
-            <li>Pilih mode Masuk atau Pulang.</li>
             <li>Pastikan status reader "Siap".</li>
-            <li>Tempelkan kartu. Kehadiran langsung tercatat.</li>
+            <li>Tempelkan kartu saat datang untuk absen masuk.</li>
+            <li>Tempelkan lagi saat pulang untuk absen pulang.</li>
          </ol>
       </div>
    </div>
@@ -76,7 +67,7 @@ $oppBtn = ($waktu == 'Masuk' ? 'pulang' : 'masuk');
       jQuery.ajax({
          url: "<?= base_url('scan/cek'); ?>",
          type: 'post',
-         data: { 'unique_code': code, 'waktu': '<?= strtolower($waktu); ?>' },
+         data: { 'unique_code': code, 'waktu': 'auto' },
          success: function (response) {
             audio.play().catch(e => console.log('Audio autoplay blocked by browser'));
             $('#hasilScan').html(response);
