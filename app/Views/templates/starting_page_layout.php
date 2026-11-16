@@ -5,104 +5,34 @@
    <meta charset="UTF-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta name="description" content="Absensi Sekolah QR Code - Sistem absensi modern berbasis QR Code">
-   <meta name="theme-color" content="#8B5CF6">
+   <meta name="description" content="Absensi SMP PGRI 1 Ciputat">
+   <meta name="theme-color" content="#2e3192">
+   <link rel="icon" type="image/png" href="<?= base_url('assets/img/logo.png'); ?>">
 
    <?= $this->include("templates/css") ?>
 
    <title><?= $title ?? 'Absensi' ?> | SMP PGRI 1 CIPUTAT</title>
-
-   <style>
-      body {
-         background-color: #f8fafc;
-         background-image: 
-            radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px),
-            radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.08) 0px, transparent 50%),
-            radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.05) 0px, transparent 40%),
-            radial-gradient(at 0% 100%, rgba(192, 132, 252, 0.05) 0px, transparent 40%);
-         background-size: 24px 24px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-         position: relative;
-         overflow-x: hidden;
-      }
-
-      .scanner-layout {
-         min-height: 100vh;
-         display: flex;
-         flex-direction: column;
-      }
-
-      .scanner-header {
-         height: 64px;
-         background: rgba(255, 255, 255, 0.8);
-         backdrop-filter: blur(8px);
-         border-bottom: 1px solid var(--border-color);
-         display: flex;
-         align-items: center;
-         padding: 0 40px;
-         position: sticky;
-         top: 0;
-         z-index: 100;
-      }
-
-      video#previewKamera {
-         width: 100%;
-         height: 100%;
-         object-fit: cover;
-         border-radius: var(--radius-md);
-      }
-
-      .previewParent {
-         position: relative;
-         width: 100%;
-         background: var(--slate-900);
-         border-radius: var(--radius-lg);
-         overflow: hidden;
-         border: 1px solid var(--border-color);
-      }
-      
-      .scan-overlay {
-         position: absolute;
-         top: 0; left: 0; right: 0; bottom: 0;
-         border: 2px solid rgba(139, 92, 246, 0.3);
-         border-radius: var(--radius-lg);
-         pointer-events: none;
-         z-index: 10;
-      }
-
-      .unpreview {
-         aspect-ratio: 16/9;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         color: var(--slate-400);
-         font-size: 14px;
-         background: var(--slate-50);
-      }
-   </style>
 </head>
 
 <body>
-   <div class="scanner-layout">
-      <header class="scanner-header">
-         <div class="flex items-center justify-between w-full">
-            <div class="flex items-center gap-3">
-               <div style="width: 32px; height: 32px; background: var(--primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white;">
-                  <i class="material-icons" style="font-size: 18px;">qr_code_2</i>
-               </div>
-               <div>
-                  <h1 style="font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.2;">SMP PGRI 1 CIPUTAT</h1>
-                  <p style="font-size: 10px; color: var(--slate-500); text-transform: uppercase; tracking: 0.05em;">Presence System</p>
+   <div class="flex min-h-screen flex-col">
+      <header class="sticky top-0 z-20 border-b border-slate-200 bg-white">
+         <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
+            <div class="flex min-w-0 items-center gap-2.5">
+               <img src="<?= getLogo(); ?>" alt="Logo sekolah" class="h-8 w-8 shrink-0 object-contain">
+               <div class="min-w-0 leading-tight">
+                  <p class="text-sm font-semibold text-slate-900">Absensi</p>
+                  <p class="truncate text-xs text-slate-500">SMP PGRI 1 Ciputat</p>
                </div>
             </div>
-            
-            <div class="flex items-center gap-3">
+
+            <div class="flex items-center gap-2">
                <?= $this->renderSection("navaction") ?>
             </div>
          </div>
       </header>
 
-      <main style="flex: 1; padding: 40px;">
+      <main class="flex-1 px-4 py-6">
          <?= $this->renderSection("content") ?>
       </main>
    </div>

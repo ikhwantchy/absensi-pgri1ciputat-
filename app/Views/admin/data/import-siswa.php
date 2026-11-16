@@ -1,93 +1,78 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
+<div class="mx-auto max-w-3xl space-y-4">
+   <?= view('admin/_messages'); ?>
 
-<!-- PAGE HEADER -->
-<div class="admin-page-header">
-   <div>
-      <h1 class="page-title">Import Data Siswa</h1>
-      <div class="breadcrumb">
-         <a href="<?= base_url('admin/dashboard'); ?>">Dashboard</a>
-         <span class="breadcrumb-sep">›</span>
-         <a href="<?= base_url('admin/siswa'); ?>">Data Siswa</a>
-         <span class="breadcrumb-sep">›</span>
-         <span class="breadcrumb-active">Import Data</span>
-      </div>
-   </div>
-</div>
-
-<?= view('admin/_messages'); ?>
-
-<div class="card">
-   <div class="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
-      <!-- Left: Upload Section (60%) -->
-      <div class="flex-1 p-6 sm:p-8">
-         <div class="mb-6">
-            <h2 style="font-size:16px;font-weight:600;color:var(--text-primary); margin:0 0 4px 0;">Bulk Upload CSV Siswa</h2>
-            <p style="font-size:13px;color:var(--text-muted); margin:0;">Angkatan <?= $generalSettings->school_year; ?></p>
+   <section class="card">
+      <div class="card-head">
+         <div>
+            <h2 class="card-title inline-flex items-center gap-1">
+               Import siswa dari CSV
+               <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Pakai template CSV. Kolom ID kelas diisi sesuai daftar ID kelas. Jangan pakai tanda kutip ganda (") di isi file.</span></span>
+            </h2>
+            <p class="card-sub">Tahun ajaran <?= $generalSettings->school_year; ?></p>
          </div>
+         <a href="<?= base_url('admin/siswa'); ?>" class="btn btn-ghost btn-sm"><i class="material-icons">arrow_back</i>Kembali</a>
+      </div>
 
-         <div class="form-group mb-0" style="padding-bottom: 0 !important;">
-            <div class="dm-uploader-container">
-               <div id="drag-and-drop-zone" class="dm-uploader p-6 sm:p-8" style="border: 2px dashed rgba(124, 58, 237, 0.25); border-radius: var(--r-xl); text-align: center; background: rgba(124, 58, 237, 0.01); transition: all 0.3s ease; cursor: pointer;">
-                  <p class="dm-upload-icon" style="margin-bottom: 16px;">
-                     <i class="material-icons" style="font-size: 56px; color: var(--primary); opacity: 0.85;">cloud_upload</i>
-                  </p>
-                  <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-top:0; margin-bottom: 4px;">Tarik &amp; Letakkan File CSV</h3>
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">atau klik tombol di bawah untuk memilih file</p>
-                  <div class="btn btn-primary" style="position: relative; overflow: hidden; padding: 10px 24px; border-radius: var(--r-md); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);">
-                     <span>Pilih File Browser</span>
-                     <input type="file" title='Click to add Files' style="position: absolute; top: 0; right: 0; margin: 0; padding: 0; font-size: 20px; cursor: pointer; opacity: 0; height: 100%;" />
+      <ol class="divide-y divide-slate-100">
+         <li class="flex gap-3 p-4">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">1</span>
+            <div class="min-w-0 flex-1">
+               <h3 class="font-semibold text-slate-900">Unduh template</h3>
+               <form action="<?= base_url('admin/siswa/downloadCSVFilePost'); ?>" method="post" class="mt-2 flex flex-wrap gap-2">
+                  <?= csrf_field(); ?>
+                  <button class="btn btn-secondary btn-sm" name="submit" value="csv_siswa_template">
+                     <i class="material-icons">download</i>Template CSV
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#modalKelas">
+                     <i class="material-icons">list_alt</i>Lihat ID kelas
+                  </button>
+               </form>
+            </div>
+         </li>
+
+         <li class="flex gap-3 p-4">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">2</span>
+            <div class="min-w-0 flex-1">
+               <h3 class="font-semibold text-slate-900">Unggah CSV</h3>
+               <div class="dm-uploader-container mt-2">
+                  <div id="drag-and-drop-zone" class="dm-uploader !p-4">
+                     <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                        <i class="material-icons text-slate-400">upload_file</i>
+                        <span class="text-slate-600">Tarik file CSV ke sini atau</span>
+                        <div class="btn btn-primary btn-sm relative overflow-hidden">
+                           <span>Pilih file</span>
+                           <input type="file" title="Pilih file CSV" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                        </div>
+                     </div>
                   </div>
                </div>
             </div>
+         </li>
 
-            <!-- Upload Progress/Spinner -->
-            <div id="csv_upload_spinner" class="csv-upload-spinner" style="display:none; text-align: center; margin-top: 24px;">
-               <strong class="text-csv-importing" style="font-size: 14px; color: var(--primary);">Mengimpor Data Siswa...</strong>
-               <strong class="text-csv-import-completed" style="font-size: 14px; color: var(--success); display: none;">Selesai!</strong>
-               <div class="spinner-bounce" style="margin-top: 10px;">
-                  <div class="bounce1"></div>
-                  <div class="bounce2"></div>
-                  <div class="bounce3"></div>
+         <li class="flex gap-3 p-4">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">3</span>
+            <div class="min-w-0 flex-1">
+               <h3 class="font-semibold text-slate-900">Hasil</h3>
+               <div id="csv_upload_spinner" class="csv-upload-spinner mt-2" style="display:none;">
+                  <strong class="text-csv-importing font-semibold text-primary-700">Mengimpor data siswa…</strong>
+                  <strong class="text-csv-import-completed font-semibold text-success-700" style="display: none;">Selesai.</strong>
+                  <div class="spinner-bounce spinner !ml-2 !mt-0 !inline-block !h-4 !w-4 align-middle">
+                     <div class="bounce1"></div>
+                     <div class="bounce2"></div>
+                     <div class="bounce3"></div>
+                  </div>
+               </div>
+               <div class="csv-uploaded-files-container mt-1 max-h-64 overflow-y-auto">
+                  <ul id="csv_uploaded_files" class="csv-uploaded-files divide-y divide-slate-100">
+                     <li class="py-1.5 text-slate-500">Belum ada file diunggah.</li>
+                  </ul>
                </div>
             </div>
-
-            <!-- Upload Results List -->
-            <div class="csv-uploaded-files-container" style="margin-top: 24px; max-height: 250px; overflow-y: auto;">
-               <ul id="csv_uploaded_files" class="list-group csv-uploaded-files" style="list-style: none; padding: 0; margin: 0;"></ul>
-            </div>
-         </div>
-      </div>
-
-      <!-- Right: Help & Instructions (40%) -->
-      <div class="w-full lg:w-[320px] p-6 sm:p-8 bg-gray-50/50">
-         <div class="mb-6">
-            <h2 style="font-size:16px;font-weight:600;color:var(--text-primary); margin:0 0 4px 0;">Panduan Import</h2>
-            <p style="font-size:13px;color:var(--text-muted); margin:0;">Dokumen bantuan untuk file CSV</p>
-         </div>
-
-         <form action="<?= base_url('admin/siswa/downloadCSVFilePost'); ?>" method="post">
-            <?= csrf_field(); ?>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-               <button type="button" class="btn btn-outline w-full justify-center" style="border-color: var(--border); background: var(--surface);" data-bs-toggle="modal" data-bs-target="#modalKelas">
-                  <i class="material-icons">list_alt</i> Lihat ID Kelas
-               </button>
-               <button class="btn btn-primary w-full justify-center" name="submit" value="csv_siswa_template" style="background: var(--primary); color: #fff;">
-                  <i class="material-icons">file_download</i> Download Template CSV
-               </button>
-            </div>
-         </form>
-
-         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-soft); font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
-            <strong style="color: var(--text-primary);">Catatan Penting:</strong>
-            <ul style="padding-left: 16px; margin-top: 8px; color: var(--text-muted); list-style-type: disc;">
-               <li>Gunakan template CSV yang disediakan.</li>
-               <li>Pastikan format ID Kelas sesuai dengan data sistem (Lihat ID Kelas).</li>
-               <li>Jangan gunakan tanda kutip ganda (") di dalam file CSV.</li>
-            </ul>
-         </div>
-      </div>
-   </div>
+         </li>
+      </ol>
+   </section>
 </div>
 
 <!-- Modal Daftar Kelas -->
@@ -95,25 +80,25 @@
    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
          <div class="modal-header">
-            <h5 class="modal-title" id="modalKelasTitle">Daftar ID Kelas</h5>
-            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
+            <h5 class="modal-title" id="modalKelasTitle">Daftar ID kelas</h5>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Tutup">
+               <i class="material-icons">close</i>
             </button>
          </div>
-         <div class="modal-body" style="padding: 0;">
-            <div class="table-wrapper" style="border: none; border-radius: 0; max-height: 400px; overflow-y: auto;">
-               <table>
+         <div class="modal-body !p-0">
+            <div class="table-wrap max-h-96 overflow-y-auto">
+               <table class="table">
                   <thead>
                      <tr>
-                        <th style="width: 100px;">ID</th>
-                        <th>Kelas / Tingkat</th>
+                        <th class="w-24">ID</th>
+                        <th>Kelas</th>
                      </tr>
                   </thead>
                   <tbody>
                      <?php foreach ($kelas as $value) : ?>
                         <tr>
-                           <td style="font-weight: 600; color: var(--primary);">#<?= $value['id_kelas']; ?></td>
-                           <td style="font-weight: 500; color: var(--text-primary);"><?= $value['kelas']; ?></td>
+                           <td class="font-semibold tabular-nums text-primary-700">#<?= $value['id_kelas']; ?></td>
+                           <td><?= $value['kelas']; ?></td>
                         </tr>
                      <?php endforeach; ?>
                   </tbody>
@@ -127,58 +112,6 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<style>
-/* Style override for dm-uploader active state */
-#drag-and-drop-zone.active {
-    border-color: var(--primary) !important;
-    background-color: var(--primary-soft) !important;
-}
-/* Style for uploaded list items */
-#csv_uploaded_files li {
-    padding: 10px 14px;
-    margin-bottom: 8px;
-    border-radius: var(--r-md);
-    font-size: 13px;
-    font-weight: 500;
-}
-.list-group-item-success {
-    background: var(--success-soft);
-    color: #065F46;
-    border: 1px solid rgba(16,185,129,0.2);
-}
-.list-group-item-danger {
-    background: var(--danger-soft);
-    color: #991B1B;
-    border: 1px solid rgba(239,68,68,0.2);
-}
-/* Modal table style updates */
-#modalKelas table {
-    width: 100%;
-    border-collapse: collapse;
-}
-#modalKelas th {
-    padding: 14px 24px;
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    text-align: left;
-    border-bottom: 2px solid var(--border-soft);
-    background-color: rgba(0, 0, 0, 0.02);
-}
-#modalKelas td {
-    padding: 14px 24px;
-    font-size: 14px;
-    border-bottom: 1px solid var(--border-soft);
-}
-#modalKelas tr:last-child td {
-    border-bottom: none;
-}
-#modalKelas tr:hover {
-    background-color: rgba(0, 0, 0, 0.01);
-}
-</style>
-
 <script>
     $(function() {
         $('#drag-and-drop-zone').dmUploader({
@@ -240,9 +173,9 @@
                 success: function(response) {
                     var objSub = JSON.parse(response);
                     if (objSub.result == 1) {
-                        $("#csv_uploaded_files").prepend('<li class="list-group-item list-group-item-success"><i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">check_circle</i> ' + objSub.index + '. ' + objSub.siswa.nis + ' - ' + objSub.siswa.nama_siswa +'</li>');
+                        $("#csv_uploaded_files").prepend('<li class="flex items-center gap-1.5 py-1.5 text-slate-700"><i class="material-icons text-base text-success-700">check_circle</i> ' + objSub.index + '. ' + objSub.siswa.nis + ' - ' + objSub.siswa.nama_siswa +'</li>');
                     } else {
-                        $("#csv_uploaded_files").prepend('<li class="list-group-item list-group-item-danger"><i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">error</i> ' + objSub.index + '. Failed</li>');
+                        $("#csv_uploaded_files").prepend('<li class="flex items-center gap-1.5 py-1.5 text-danger-700"><i class="material-icons text-base">cancel</i> ' + objSub.index + '. Gagal</li>');
                     }
                     if (objSub.index == numberOfItems) {
                         $("#csv_upload_spinner .text-csv-importing").hide();

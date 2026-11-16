@@ -221,9 +221,9 @@ if (!function_exists('getLogo')) {
             if (!empty($generalSettings->logo) && file_exists(FCPATH . $generalSettings->logo)) {
                 return base_url($generalSettings->logo);
             }
-            return base_url("assets/img/logo_sekolah.jpg");
+            return base_url("assets/img/logo.png");
         }
-        return base_url("assets/img/logo_sekolah.jpg");
+        return base_url("assets/img/logo.png");
     }
 }
 

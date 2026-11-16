@@ -5,11 +5,11 @@ use App\Libraries\enums\UserRole;
 if (!function_exists('kehadiran')) {
    function kehadiran(int $k): array {
       return match($k) {
-         1 => ['label' => 'Hadir',       'class' => 'badge-success'],
-         2 => ['label' => 'Sakit',       'class' => 'badge-warning'],
-         3 => ['label' => 'Izin',        'class' => 'badge-info'],
-         4 => ['label' => 'Alfa',        'class' => 'badge-danger'],
-         default => ['label' => 'Belum', 'class' => 'badge-muted'],
+         1 => ['label' => 'Hadir',       'class' => 'status-success', 'icon' => 'check_circle'],
+         2 => ['label' => 'Sakit',       'class' => 'status-warning', 'icon' => 'sick'],
+         3 => ['label' => 'Izin',        'class' => 'status-info',    'icon' => 'assignment'],
+         4 => ['label' => 'Alfa',        'class' => 'status-danger',  'icon' => 'cancel'],
+         default => ['label' => 'Belum absen', 'class' => 'status-muted', 'icon' => 'schedule'],
       };
    }
 }
@@ -24,44 +24,36 @@ if (!function_exists('avatarBg')) {
 $total = count($data ?? []);
 ?>
 
-<div class="card" style="padding: 28px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); background: #ffffff;">
-
-   <!-- Table Header -->
-   <div class="flex items-center justify-between" style="margin-bottom: 24px; gap: 16px; flex-wrap: wrap;">
+<section class="card overflow-hidden">
+   <div class="card-head">
       <div>
-         <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px;">Data Absensi Guru</div>
-         <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
-            Total: <strong style="color: var(--primary); font-weight: 600;"><?= $total; ?></strong> guru terdaftar
-         </div>
+         <h2 class="card-title">Absensi guru</h2>
+         <p class="card-sub"><?= $total; ?> guru · <?= date('d M Y', strtotime($tanggal ?? date('Y-m-d'))); ?></p>
       </div>
-
-      <div class="flex items-center gap-3" style="flex-wrap: wrap;">
-         <!-- Search -->
-         <div style="position: relative; display: flex; align-items: center; min-width: 280px;">
-            <i class="material-icons" style="position: absolute; left: 14px; font-size: 20px; color: var(--text-muted); pointer-events: none;">search</i>
-            <input type="text" id="searchGuru" class="form-control" placeholder="Cari nama / NUPTK…" oninput="filterTable()" style="padding-left: 44px !important; height: 44px; border-radius: 10px; font-size: 14px; border: 1px solid var(--border); width: 100%; box-shadow: none;">
+      <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+         <div class="input-icon min-w-0 flex-1 sm:w-64 sm:flex-none">
+            <i class="material-icons">search</i>
+            <input type="text" id="searchGuru" class="input" placeholder="Cari nama / NUPTK" oninput="filterTable()">
          </div>
-         <!-- Refresh -->
-         <button onclick="getGuru()" class="btn btn-outline" style="height: 44px; padding: 0 20px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; font-size: 14px; border-color: var(--border);">
-            <i class="material-icons" style="font-size: 18px; color: var(--text-secondary);">refresh</i> Refresh
+         <button type="button" onclick="getGuru()" class="btn btn-secondary">
+            <i class="material-icons">refresh</i>Muat ulang
          </button>
       </div>
    </div>
 
-   <!-- Table -->
    <?php if (!empty($data)): ?>
-   <div class="table-responsive border-0" style="overflow-x: auto; margin: 0 -28px; padding: 0 28px;">
-      <table id="tabelGuru" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+   <div class="table-wrap">
+      <table id="tabelGuru" class="table">
          <thead>
-            <tr style="background: #f8fafc;">
-               <th style="width: 48px; padding: 16px 20px; border-bottom: 2px solid #e2e8f0; border-top-left-radius: 10px; border-bottom-left-radius: 10px; white-space: nowrap;"></th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">Nama Guru</th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">NUPTK</th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">Kehadiran</th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">Jam Masuk</th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">Jam Pulang</th>
-               <th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;">Keterangan</th>
-               <?php if (can_edit_attendance()): ?><th style="padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: center; border-bottom: 2px solid #e2e8f0; border-top-right-radius: 10px; border-bottom-right-radius: 10px; white-space: nowrap;">Aksi</th><?php endif; ?>
+            <tr>
+               <th class="w-10"></th>
+               <th>Nama guru</th>
+               <th>NUPTK</th>
+               <th>Kehadiran</th>
+               <th>Jam masuk</th>
+               <th>Jam pulang</th>
+               <th>Keterangan</th>
+               <?php if (can_edit_attendance()): ?><th class="text-right">Aksi</th><?php endif; ?>
             </tr>
          </thead>
          <tbody>
@@ -72,50 +64,33 @@ $total = count($data ?? []);
                $initials    = strtoupper(implode('', array_map(fn($w) => $w[0], explode(' ', $row['nama_guru']))));
                $initials    = substr($initials, 0, 2);
             ?>
-            <tr style="transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-               <!-- Checkbox -->
-               <td style="width: 48px; padding: 18px 20px; text-align: center; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
-                  <input type="checkbox" class="cb" style="width: 18px; height: 18px; cursor: pointer;">
+            <tr>
+               <td class="w-10">
+                  <input type="checkbox" class="cb" aria-label="Pilih <?= esc($row['nama_guru'], 'attr'); ?>">
                </td>
-
-               <!-- Nama -->
-               <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
-                  <div class="flex items-center gap-3">
-                     <div style="width: 40px !important; height: 40px !important; border-radius: 50% !important; background: #<?= $bg; ?>; color: #ffffff; font-size: 14px; font-weight: 700; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <?= $initials; ?>
-                     </div>
-                     <span style="font-size: 15px; font-weight: 600; color: #1e293b;"><?= esc($row['nama_guru']); ?></span>
+               <td class="whitespace-nowrap">
+                  <div class="flex items-center gap-2.5">
+                     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white" style="background: #<?= $bg; ?>;"><?= $initials; ?></span>
+                     <span class="font-medium text-slate-900"><?= esc($row['nama_guru']); ?></span>
                   </div>
                </td>
-
-               <!-- NUPTK -->
-               <td style="padding: 18px 20px; color: #64748b; font-size: 14px; font-weight: 500; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">#<?= esc($row['nuptk']); ?></td>
-
-               <!-- Kehadiran Badge -->
-               <td style="padding: 18px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
-                  <span class="badge <?= $k['class']; ?>" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 20px; display: inline-block; white-space: nowrap; letter-spacing: 0.3px;"><?= $k['label']; ?></span>
-               </td>
-
-               <!-- Jam -->
-               <td style="padding: 18px 20px; font-size: 14px; font-weight: 600; color: #334155; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $row['jam_masuk']  ?? '—'; ?></td>
-               <td style="padding: 18px 20px; font-size: 14px; font-weight: 600; color: #334155; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= $row['jam_keluar'] ?? '—'; ?></td>
-
-               <!-- Keterangan -->
-               <td style="padding: 18px 20px; font-size: 14px; color: #64748b; border-bottom: 1px solid #f1f5f9; white-space: nowrap;"><?= esc($row['keterangan'] ?? '—'); ?></td>
-
-               <!-- Aksi -->
+               <td class="whitespace-nowrap tabular-nums text-slate-600"><?= esc($row['nuptk']); ?></td>
+               <td><span class="status <?= $k['class']; ?>"><i class="material-icons"><?= $k['icon']; ?></i><?= $k['label']; ?></span></td>
+               <td class="whitespace-nowrap tabular-nums"><?= $row['jam_masuk']  ?? '—'; ?></td>
+               <td class="whitespace-nowrap tabular-nums"><?= $row['jam_keluar'] ?? '—'; ?></td>
+               <td class="min-w-[10rem] text-slate-600"><?= esc($row['keterangan'] ?? '—'); ?></td>
                <?php if (can_edit_attendance()): ?>
-               <td style="padding: 18px 20px; text-align: center; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">
+               <td class="text-right">
                   <?php if (!$lewat): ?>
-                     <button class="btn btn-sm btn-outline"
+                     <button type="button" class="btn btn-ghost btn-icon btn-sm"
                              data-bs-toggle="modal"
                              data-bs-target="#ubahModal"
                              onclick="getDataKehadiran(<?= $row['id_presensi'] ?? -1; ?>, <?= $row['id_guru']; ?>)"
-                             style="padding: 8px 14px; height: 38px; border-radius: 8px; border-color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                        <i class="material-icons" style="font-size: 16px; color: #64748b;">edit</i>
+                             title="Ubah kehadiran" aria-label="Ubah kehadiran">
+                        <i class="material-icons">edit</i>
                      </button>
                   <?php else: ?>
-                     <span style="font-size: 14px; color: #94a3b8;">—</span>
+                     <span class="text-slate-400">—</span>
                   <?php endif; ?>
                </td>
                <?php endif; ?>
@@ -125,26 +100,14 @@ $total = count($data ?? []);
       </table>
    </div>
 
-   <!-- Footer: count -->
-   <div class="flex items-center justify-between" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-      <div style="font-size: 14px; color: #64748b;">
-         Menampilkan <strong style="color: #0f172a; font-weight: 700;" id="rowCount"><?= $total; ?></strong> dari <strong style="color: #0f172a; font-weight: 700;"><?= $total; ?></strong> guru
-      </div>
-      <div style="font-size: 14px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 6px 16px; border-radius: 20px;">
-         <?= date('d M Y', strtotime($tanggal ?? date('Y-m-d'))); ?>
-      </div>
+   <div class="border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
+      Menampilkan <strong class="text-slate-900" id="rowCount"><?= $total; ?></strong> dari <strong class="text-slate-900"><?= $total; ?></strong> guru
    </div>
 
    <?php else: ?>
-   <!-- Empty -->
-   <div style="text-align:center;padding:48px 24px;">
-      <i class="material-icons" style="font-size:48px;color:var(--border);display:block;margin-bottom:12px;">search_off</i>
-      <div style="font-size:14px;font-weight:500;color:var(--text-secondary);">Tidak ada data absen guru</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Pastikan tanggal sudah benar</div>
-   </div>
+   <p class="empty">Tidak ada data absensi guru. Periksa tanggal.</p>
    <?php endif; ?>
-
-</div>
+</section>
 
 <script>
 function filterTable() {

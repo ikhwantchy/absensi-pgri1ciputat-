@@ -1,114 +1,70 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
-<style>
-  .progress-siswa {
-    height: 5px;
-    border-radius: 0px;
-    background-color: rgb(186, 124, 222);
-  }
+<div class="space-y-4">
+  <?php if (session()->getFlashdata('msg')): ?>
+    <div class="alert alert-<?= session()->getFlashdata('error') == true ? 'danger' : 'success' ?>">
+      <i class="material-icons"><?= session()->getFlashdata('error') == true ? 'error' : 'check_circle' ?></i>
+      <span><?= session()->getFlashdata('msg') ?></span>
+      <button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+  <?php endif; ?>
 
-  .my-progress-bar {
-    height: 5px;
-    border-radius: 0px;
-  }
-</style>
-<div class="content">
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-lg-12 col-md-12">
-        <?php if (session()->getFlashdata('msg')): ?>
-          <div class="pb-2 px-3">
-            <div class="alert alert-<?= session()->getFlashdata('error') == true ? 'danger' : 'success' ?> ">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <i class="material-icons">close</i>
-              </button>
-              <?= session()->getFlashdata('msg') ?>
-            </div>
-          </div>
-        <?php endif; ?>
-        <div class="card">
-          <div class="card-header card-header-primary">
-            <h4 class="card-title"><b>QR Code Siswa - <?= $kelas['kelas']; ?></b></h4>
-            <p class="card-category">Generate dan download QR Code untuk siswa di kelas Anda</p>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="card">
-                  <div class="card-body">
-                    <h4 class="text-primary"><b>Data Siswa</b></h4>
-                    <p>Total jumlah siswa : <b><?= count($siswa); ?></b></p>
-                    <div class="row px-2">
-                      <div class="col-12 col-xl-4 px-1">
-                        <button onclick="generateAllQrSiswa()" class="btn btn-primary p-2 px-md-4 w-100">
-                          <div class="d-flex align-items-center justify-content-center" style="gap: 12px;">
-                            <div>
-                              <i class="material-icons" style="font-size: 24px;">qr_code</i>
-                            </div>
-                            <div>
-                              <h4 class="d-inline font-weight-bold">Generate All</h4>
-                              <div id="progressSiswa" class="d-none mt-2">
-                                <span id="progressTextSiswa"></span>
-                                <i id="progressSelesaiSiswa" class="material-icons d-none">check</i>
-                                <div class="progress progress-siswa">
-                                  <div id="progressBarSiswa" class="progress-bar my-progress-bar bg-white" style="width: 0%;" role="progressbar" aria-valuenow="" aria-valuemin="" aria-valuemax="">
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      </div>
-                      <div class="col-12 col-xl-4 px-1">
-                        <a href="<?= base_url('teacher/qr/download'); ?>" class="btn btn-success p-2 px-md-4 w-100">
-                          <div class="d-flex align-items-center justify-content-center h-100" style="gap: 12px;">
-                            <div>
-                              <i class="material-icons" style="font-size: 24px;">cloud_download</i>
-                            </div>
-                            <div>
-                              <div class="text-start">
-                                <h4 class="d-inline font-weight-bold">Download All (.zip)</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <hr>
-                    <div class="table-responsive mt-4">
-                      <table class="table table-hover">
-                        <thead class="text-primary">
-                          <th><b>No</b></th>
-                          <th><b>NIS</b></th>
-                          <th><b>Nama Siswa</b></th>
-                          <th class="text-center"><b>Aksi</b></th>
-                        </thead>
-                        <tbody>
-                          <?php $i = 1;
-                          foreach ($siswa as $s): ?>
-                            <tr>
-                              <td><?= $i++; ?></td>
-                              <td><?= esc($s['nis']); ?></td>
-                              <td><?= esc($s['nama_siswa']); ?></td>
-                              <td class="text-center">
-                                <a href="<?= base_url('admin/qr/siswa/' . $s['id_siswa'] . '/download'); ?>" class="btn btn-info btn-sm">
-                                  <i class="material-icons">download</i> Download QR
-                                </a>
-                              </td>
-                            </tr>
-                          <?php endforeach; ?>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <section class="card overflow-hidden">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">QR siswa <?= $kelas['kelas']; ?></h2>
+        <p class="card-sub"><span class="tabular-nums"><?= count($siswa); ?></span> siswa</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="<?= base_url('teacher/qr/download'); ?>" class="btn btn-secondary btn-sm">
+          <i class="material-icons">download</i>Unduh semua (.zip)
+        </a>
+        <button onclick="generateAllQrSiswa()" class="btn btn-primary btn-sm">
+          <i class="material-icons">qr_code_2</i>Buat semua
+        </button>
       </div>
     </div>
-  </div>
+
+    <div id="progressSiswa" class="d-none border-b border-slate-100 px-4 py-3">
+      <div class="mb-1.5 flex items-center justify-between gap-2">
+        <span id="progressTextSiswa" class="text-xs font-semibold tabular-nums text-slate-700"></span>
+        <i id="progressSelesaiSiswa" class="material-icons d-none text-base text-green-700">check</i>
+      </div>
+      <div class="progress-siswa h-1.5 overflow-hidden rounded-full bg-primary-100">
+        <div id="progressBarSiswa" class="my-progress-bar h-full rounded-full bg-primary-700 transition-all" style="width: 0%;" role="progressbar" aria-valuenow="" aria-valuemin="" aria-valuemax=""></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="num">No</th>
+            <th>NIS</th>
+            <th>Nama siswa</th>
+            <th class="text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php $i = 1;
+          foreach ($siswa as $s): ?>
+            <tr>
+              <td class="num"><?= $i++; ?></td>
+              <td class="tabular-nums"><?= esc($s['nis']); ?></td>
+              <td><?= esc($s['nama_siswa']); ?></td>
+              <td class="text-right">
+                <a href="<?= base_url('admin/qr/siswa/' . $s['id_siswa'] . '/download'); ?>" class="btn btn-ghost btn-sm">
+                  <i class="material-icons">download</i>Unduh QR
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
 <?= $this->endSection() ?>
 

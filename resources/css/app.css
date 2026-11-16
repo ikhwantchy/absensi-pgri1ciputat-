@@ -1,0 +1,498 @@
+@import 'tailwindcss';
+
+/* Kelas dipindai dari view, controller (HTML dari AJAX), dan JS aplikasi. */
+@source '../../app/Views/**/*.php';
+@source '../../app/Controllers/**/*.php';
+@source '../../public/assets/js/custom.js';
+
+/* Token warna dan font disamakan dengan sistem PPDB. */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    --color-primary: #2e3192;
+    --color-primary-50: #eef0fb;
+    --color-primary-100: #d9ddf5;
+    --color-primary-200: #bcc2ec;
+    --color-primary-300: #959de0;
+    --color-primary-600: #3a3fa8;
+    --color-primary-700: #2e3192;
+    --color-primary-800: #252877;
+    --color-primary-900: #1c1e5b;
+
+    --color-success-50: #f0fdf4;
+    --color-success-600: #16a34a;
+    --color-success-700: #15803d;
+    --color-warning-50: #fefce8;
+    --color-warning-500: #eab308;
+    --color-warning-800: #854d0e;
+    --color-danger-50: #fef2f2;
+    --color-danger-600: #dc2626;
+    --color-danger-700: #b91c1c;
+}
+
+@layer base {
+    /* Ikon: Material Symbols Outlined (garis), cadangan Material Icons lokal. */
+    .material-icons,
+    .icon {
+        font-family: 'Material Symbols Outlined', 'Material Icons';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 1.25rem;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        flex-shrink: 0;
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+    }
+
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-slate-100 font-sans text-sm leading-6 text-slate-800 antialiased;
+    }
+
+    a {
+        @apply text-primary-700;
+    }
+
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    summary,
+    label[for],
+    input[type='checkbox'],
+    input[type='radio'],
+    select {
+        cursor: pointer;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+        @apply h-4 w-4 accent-primary-700;
+    }
+
+    [x-cloak],
+    .d-none {
+        display: none !important;
+    }
+}
+
+/* Cadangan lokal bila Google Fonts tidak terjangkau (mis. kiosk offline). */
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/material-icons.woff2') format('woff2');
+}
+
+@layer components {
+    /* ---------- Kartu ---------- */
+    .card {
+        @apply rounded-xl bg-white shadow-sm;
+    }
+
+    .card-head {
+        @apply flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-slate-100 px-4 py-3;
+    }
+
+    .card-title {
+        @apply text-sm font-semibold text-slate-900;
+    }
+
+    .card-sub {
+        @apply text-xs text-slate-500;
+    }
+
+    .card-body {
+        @apply p-4;
+    }
+
+    .card-foot {
+        @apply flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 px-4 py-3;
+    }
+
+    /* ---------- Tombol ---------- */
+    .btn {
+        @apply inline-flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent px-4 text-sm font-semibold no-underline transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn .material-icons {
+        @apply text-lg;
+    }
+
+    .btn-primary {
+        @apply bg-primary-700 text-white hover:bg-primary-800;
+    }
+
+    .btn-secondary,
+    .btn-outline {
+        @apply border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+    }
+
+    .btn-danger {
+        @apply bg-danger-600 text-white hover:bg-danger-700;
+    }
+
+    .btn-success {
+        @apply bg-success-600 text-white hover:bg-success-700;
+    }
+
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .btn-ghost-danger {
+        @apply text-danger-700 hover:bg-danger-50;
+    }
+
+    .btn-sm {
+        @apply h-8 gap-1 px-3 text-xs;
+    }
+
+    .btn-sm .material-icons {
+        @apply text-base;
+    }
+
+    .btn-icon {
+        @apply h-8 w-8 px-0;
+    }
+
+    /* ---------- Form ---------- */
+    .label {
+        @apply mb-1.5 block text-sm font-medium text-slate-700;
+    }
+
+    .hint {
+        @apply mt-1 text-xs text-slate-500;
+    }
+
+    .input,
+    .form-control,
+    .form-select {
+        @apply h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 transition placeholder:text-slate-500 hover:border-slate-400 focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 read-only:bg-slate-50;
+    }
+
+    textarea.input,
+    textarea.form-control {
+        @apply h-auto min-h-20 py-2 leading-6;
+    }
+
+    select.input,
+    select.form-control,
+    .form-select {
+        @apply appearance-none bg-no-repeat pr-9;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2364748b'%3E%3Cpath fill-rule='evenodd' d='M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        background-position: right 0.6rem center;
+        background-size: 1.1rem;
+    }
+
+    input[type='file'].input {
+        @apply h-auto py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-primary-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-primary-700;
+    }
+
+    .input.is-invalid,
+    .form-control.is-invalid {
+        @apply border-danger-600 focus:border-danger-600 focus:ring-danger-50;
+    }
+
+    .invalid-feedback,
+    .field-error {
+        @apply mt-1 block text-xs font-medium text-danger-700 empty:hidden;
+    }
+
+    /* Input dengan ikon di kiri. */
+    .input-icon {
+        @apply relative;
+    }
+
+    .input-icon > .material-icons {
+        @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400;
+    }
+
+    .input-icon > .input {
+        @apply pl-9;
+    }
+
+    /* Bar filter di atas tabel. */
+    .filter-bar {
+        @apply flex flex-wrap items-end gap-2 rounded-xl bg-white p-3 shadow-sm;
+    }
+
+    /* ---------- Tabel ---------- */
+    .table-wrap {
+        @apply overflow-x-auto;
+    }
+
+    .table {
+        @apply min-w-full text-sm;
+    }
+
+    .table thead {
+        @apply border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500;
+    }
+
+    .table th {
+        @apply whitespace-nowrap px-4 py-3 font-semibold;
+    }
+
+    .table td {
+        @apply px-4 py-3 align-middle;
+    }
+
+    .table tbody {
+        @apply divide-y divide-slate-100;
+    }
+
+    .table tbody tr {
+        @apply hover:bg-slate-50;
+    }
+
+    .table .num {
+        @apply w-12 text-right tabular-nums text-slate-500;
+    }
+
+    .empty {
+        @apply px-4 py-10 text-center text-sm text-slate-500;
+    }
+
+    /* ---------- Status: ikon + teks berwarna tanpa latar ---------- */
+    .status {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-slate-600;
+    }
+
+    .status .material-icons {
+        @apply text-base;
+    }
+
+    .status-success {
+        @apply text-green-700;
+    }
+
+    .status-warning {
+        @apply text-amber-700;
+    }
+
+    .status-info {
+        @apply text-sky-700;
+    }
+
+    .status-danger {
+        @apply text-red-700;
+    }
+
+    .status-muted {
+        @apply text-slate-500;
+    }
+
+    /* ---------- Alert ---------- */
+    .alert {
+        @apply relative flex items-start gap-2 rounded-lg border px-4 py-3 text-sm;
+    }
+
+    .alert-success {
+        @apply border-green-200 bg-success-50 text-success-700;
+    }
+
+    .alert-danger {
+        @apply border-red-200 bg-danger-50 text-danger-700;
+    }
+
+    .alert-warning {
+        @apply border-yellow-200 bg-warning-50 text-warning-800;
+    }
+
+    .alert-info {
+        @apply border-primary-100 bg-primary-50 text-primary-800;
+    }
+
+    .alert .close {
+        @apply ml-auto -mr-1 rounded p-0.5 opacity-60 hover:opacity-100;
+    }
+
+    /* ---------- Tooltip keterangan (ikon i) ---------- */
+    .tip {
+        @apply relative inline-flex cursor-help align-middle text-slate-400 hover:text-slate-600;
+    }
+
+    .tip > .material-icons {
+        @apply text-base;
+    }
+
+    .tip > .tip-text {
+        @apply pointer-events-none invisible absolute bottom-full left-1/2 z-40 mb-2 w-60 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case leading-5 tracking-normal text-white opacity-0 shadow-lg transition;
+    }
+
+    .tip:hover > .tip-text,
+    .tip:focus > .tip-text,
+    .tip:focus-within > .tip-text {
+        @apply visible opacity-100;
+    }
+
+    /* ---------- Tab sederhana ---------- */
+    .tabs {
+        @apply flex flex-wrap gap-1 rounded-lg bg-white p-1 shadow-sm;
+    }
+
+    .tabs > a,
+    .tabs > button {
+        @apply rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 no-underline hover:bg-slate-100;
+    }
+
+    .tabs > .active {
+        @apply bg-primary-700 text-white hover:bg-primary-700;
+    }
+
+    /* ---------- Spinner (dipakai custom.js) ---------- */
+    .spinner {
+        @apply mx-auto mt-6 h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary-700;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .nav-item {
+        @apply flex items-center gap-2.5 rounded-md px-3 py-2 font-medium text-slate-600 no-underline hover:bg-slate-50 hover:text-slate-900;
+    }
+
+    .nav-item .material-icons {
+        @apply text-xl text-slate-400;
+    }
+
+    .nav-item.active {
+        @apply bg-primary-50 text-primary-700;
+    }
+
+    .nav-item.active .material-icons {
+        @apply text-primary-700;
+    }
+}
+
+/* ---------- Modal Bootstrap 4 (JS tetap dari bootstrap.bundle) ---------- */
+.modal-open {
+    overflow: hidden;
+}
+
+.modal {
+    @apply fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden outline-none;
+}
+
+.modal-dialog {
+    @apply relative mx-auto my-10 w-auto max-w-lg px-4 transition duration-200;
+}
+
+.modal-lg .modal-dialog,
+.modal-dialog.modal-lg {
+    @apply max-w-3xl;
+}
+
+.modal.fade .modal-dialog {
+    transform: translateY(0.5rem) scale(0.98);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+.modal-content {
+    @apply relative flex w-full flex-col rounded-xl bg-white shadow-xl;
+}
+
+.modal-header {
+    @apply flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3;
+}
+
+.modal-title {
+    @apply text-base font-semibold text-slate-900;
+}
+
+.modal-body {
+    @apply p-4;
+}
+
+.modal-footer {
+    @apply flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 px-4 py-3;
+}
+
+.modal-backdrop {
+    @apply fixed inset-0 z-40 bg-slate-900/40;
+}
+
+.fade {
+    transition: opacity 0.15s linear;
+}
+
+.fade:not(.show) {
+    opacity: 0;
+}
+
+.collapse:not(.show) {
+    display: none;
+}
+
+.close {
+    @apply inline-flex items-center justify-center border-0 bg-transparent text-slate-500 hover:text-slate-900;
+}
+
+/* ---------- SweetAlert v2 ---------- */
+.swal-overlay {
+    background-color: rgb(15 23 42 / 0.4);
+}
+
+.swal-modal {
+    @apply rounded-xl font-sans;
+    width: min(26rem, calc(100% - 2rem));
+}
+
+.swal-title {
+    @apply text-lg font-semibold text-slate-900;
+}
+
+.swal-text {
+    @apply text-center text-sm leading-6 text-slate-600;
+}
+
+.swal-footer {
+    @apply mt-2 text-center;
+}
+
+.swal-button {
+    @apply rounded-lg bg-primary-700 px-4 py-2 text-sm font-semibold shadow-none;
+}
+
+.swal-button:not([disabled]):hover {
+    @apply bg-primary-800;
+}
+
+.swal-button:focus {
+    @apply shadow-none ring-2 ring-primary-100;
+}
+
+.swal-button--cancel {
+    @apply border border-slate-300 bg-white text-slate-700;
+}
+
+.swal-button--cancel:not([disabled]):hover {
+    @apply bg-slate-50;
+}
+
+.swal-button--danger {
+    @apply bg-danger-600;
+}
+
+.swal-button--danger:not([disabled]):hover {
+    @apply bg-danger-700;
+}
+
+/* ---------- Uploader CSV (jquery.dm-uploader) ---------- */
+.dm-uploader {
+    @apply rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition;
+}
+
+.dm-uploader.active {
+    @apply border-primary-300 bg-primary-50;
+}

@@ -1,110 +1,75 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
 
-<!-- PAGE HEADER (Clean, avoiding MD conflict) -->
-<div class="admin-page-header">
-   <div>
-      <h1 class="page-title">Generate Laporan</h1>
-      <div class="breadcrumb">
-         <a href="<?= base_url('admin/dashboard'); ?>">Dashboard</a>
-         <span class="breadcrumb-sep">›</span>
-         <span class="breadcrumb-active">Generate Laporan</span>
-      </div>
-   </div>
-</div>
+<div class="space-y-4">
+   <?= view('admin/_messages'); ?>
 
-<!-- PREMIUM HERO BANNER -->
-<div class="premium-hero-card">
-   <div>
-      <h2 class="premium-hero-title">Pusat Ekspor & Cetak Laporan</h2>
-      <p class="premium-hero-subtitle">Unduh rekapitulasi kehadiran bulanan resmi untuk siswa dan guru ke dalam format PDF siap cetak atau Microsoft Word yang dapat diedit.</p>
-   </div>
-   <div class="premium-hero-badge">
-      <i class="material-icons" style="font-size: 18px; color: #34D399;">file_download</i>
-      <span>Format Dokumen Resmi</span>
-   </div>
-</div>
-
-<?= view('admin/_messages'); ?>
-
-<div class="flex flex-col md:flex-row gap-8" style="margin-top: 12px;">
-   <!-- LAPORAN SISWA CARD -->
-   <div class="flex-1">
-      <div class="premium-filter-card h-full flex flex-col" style="margin: 0; border-top-color: var(--primary) !important;">
-         <div class="flex items-center gap-4 mb-6">
-            <div style="width: 52px; height: 52px; border-radius: var(--r-md); background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
-               <i class="material-icons" style="font-size: 28px;">school</i>
-            </div>
+   <div class="grid gap-4 lg:grid-cols-2">
+      <section class="card flex flex-col">
+         <div class="card-head">
             <div>
-               <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Laporan Absen Siswa</h2>
-               <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0;">Cetak rekap kehadiran harian per kelas</p>
+               <h2 class="card-title">Laporan absen siswa</h2>
+               <p class="card-sub">Rekap kehadiran bulanan per kelas</p>
             </div>
          </div>
-
-         <form action="<?= base_url('admin/laporan/siswa'); ?>" method="post" style="display: flex; flex-direction: column; flex: 1;">
-            <div style="margin-bottom: 20px;">
-               <label for="tanggalSiswa" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: block;">Bulan / Tahun Laporan</label>
-               <input type="month" name="tanggalSiswa" id="tanggalSiswa" class="form-control" value="<?= date('Y-m'); ?>" style="font-weight: 600;">
+         <form action="<?= base_url('admin/laporan/siswa'); ?>" method="post" class="flex flex-1 flex-col">
+            <div class="card-body grid flex-1 content-start gap-3 sm:grid-cols-2">
+               <div>
+                  <label for="tanggalSiswa" class="label">Bulan</label>
+                  <input type="month" name="tanggalSiswa" id="tanggalSiswa" class="input" value="<?= date('Y-m'); ?>">
+               </div>
+               <div>
+                  <label for="kelas" class="label">Kelas</label>
+                  <select name="kelas" id="kelas" class="input">
+                     <option value="">Pilih kelas</option>
+                     <?php foreach ($kelas as $key => $value): ?>
+                        <?php
+                        $idKelas = $value['id_kelas'];
+                        $namaKelas = $value['kelas'];
+                        $totalSiswa = count($siswaPerKelas[$key]);
+                        ?>
+                        <option value="<?= $idKelas; ?>">
+                           <?= "$namaKelas - ($totalSiswa Siswa)"; ?>
+                        </option>
+                     <?php endforeach; ?>
+                  </select>
+               </div>
             </div>
-
-            <div style="margin-bottom: 32px;">
-               <label for="kelas" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: block;">Pilih Kelas</label>
-               <select name="kelas" id="kelas" class="form-control form-select" style="font-weight: 500;">
-                  <option value="">-- Pilih Kelas untuk Dicetak --</option>
-                  <?php foreach ($kelas as $key => $value): ?>
-                     <?php
-                     $idKelas = $value['id_kelas'];
-                     $namaKelas = $value['kelas'];
-                     $totalSiswa = count($siswaPerKelas[$key]);
-                     ?>
-                     <option value="<?= $idKelas; ?>">
-                        <?= "$namaKelas - ($totalSiswa Siswa)"; ?>
-                     </option>
-                  <?php endforeach; ?>
-               </select>
-            </div>
-
-            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
-               <button type="submit" name="type" value="pdf" class="btn btn-danger w-full justify-center" style="padding: 12px; font-size: 14px; font-weight: 600;">
-                  <i class="material-icons" style="font-size: 20px;">picture_as_pdf</i> Unduh Laporan PDF
+            <div class="card-foot">
+               <button type="submit" name="type" value="doc" class="btn btn-secondary">
+                  <i class="material-icons">description</i>Unduh Word
                </button>
-               <button type="submit" name="type" value="doc" class="btn btn-info w-full justify-center" style="padding: 12px; font-size: 14px; font-weight: 600;">
-                  <i class="material-icons" style="font-size: 20px;">description</i> Unduh Laporan Word (DOC)
+               <button type="submit" name="type" value="pdf" class="btn btn-primary">
+                  <i class="material-icons">picture_as_pdf</i>Unduh PDF
                </button>
             </div>
          </form>
-      </div>
-   </div>
+      </section>
 
-   <!-- LAPORAN GURU CARD -->
-   <div class="flex-1">
-      <div class="premium-filter-card h-full flex flex-col" style="margin: 0; border-top-color: var(--primary) !important;">
-         <div class="flex items-center gap-4 mb-6">
-            <div style="width: 52px; height: 52px; border-radius: var(--r-md); background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
-               <i class="material-icons" style="font-size: 28px;">badge</i>
-            </div>
+      <section class="card flex flex-col">
+         <div class="card-head">
             <div>
-               <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Laporan Absen Guru</h2>
-               <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0;">Total guru terdaftar: <strong style="color: var(--primary);"><?= count($guru); ?> Guru</strong></p>
+               <h2 class="card-title">Laporan absen guru</h2>
+               <p class="card-sub"><span class="tabular-nums"><?= count($guru); ?></span> guru terdaftar</p>
             </div>
          </div>
-
-         <form action="<?= base_url('admin/laporan/guru'); ?>" method="post" style="display: flex; flex-direction: column; flex: 1;">
-            <div style="margin-bottom: 32px;">
-               <label for="tanggalGuru" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: block;">Bulan / Tahun Laporan</label>
-               <input type="month" name="tanggalGuru" id="tanggalGuru" class="form-control" value="<?= date('Y-m'); ?>" style="font-weight: 600;">
+         <form action="<?= base_url('admin/laporan/guru'); ?>" method="post" class="flex flex-1 flex-col">
+            <div class="card-body grid flex-1 content-start gap-3 sm:grid-cols-2">
+               <div>
+                  <label for="tanggalGuru" class="label">Bulan</label>
+                  <input type="month" name="tanggalGuru" id="tanggalGuru" class="input" value="<?= date('Y-m'); ?>">
+               </div>
             </div>
-
-            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
-               <button type="submit" name="type" value="pdf" class="btn btn-danger w-full justify-center" style="padding: 12px; font-size: 14px; font-weight: 600;">
-                  <i class="material-icons" style="font-size: 20px;">picture_as_pdf</i> Unduh Laporan PDF
+            <div class="card-foot">
+               <button type="submit" name="type" value="doc" class="btn btn-secondary">
+                  <i class="material-icons">description</i>Unduh Word
                </button>
-               <button type="submit" name="type" value="doc" class="btn btn-info w-full justify-center" style="padding: 12px; font-size: 14px; font-weight: 600;">
-                  <i class="material-icons" style="font-size: 20px;">description</i> Unduh Laporan Word (DOC)
+               <button type="submit" name="type" value="pdf" class="btn btn-primary">
+                  <i class="material-icons">picture_as_pdf</i>Unduh PDF
                </button>
             </div>
          </form>
-      </div>
+      </section>
    </div>
 </div>
 

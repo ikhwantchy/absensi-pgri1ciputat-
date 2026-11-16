@@ -1,120 +1,101 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
-<div class="content">
-   <div class="container-fluid px-0">
-      
-      <div class="max-w-3xl mx-auto">
-         <!-- Card -->
-         <div class="card mb-0">
-            <div class="card-header border-b border-gray-100 flex items-center justify-between">
-               <div>
-                  <h4 class="text-lg font-bold text-gray-900">Tambah Data Guru</h4>
-                  <p class="text-sm text-gray-500 mt-1">Lengkapi form di bawah ini untuk menambahkan guru baru.</p>
-               </div>
-               <a href="<?= base_url('admin/guru') ?>" class="btn btn-outline hover:bg-gray-50">
-                  <i class="material-icons text-[18px]">arrow_back</i> Kembali
-               </a>
+<div class="mx-auto max-w-3xl space-y-4">
+   <?php if (session()->getFlashdata('msg')): ?>
+      <div class="alert <?= session()->getFlashdata('error') == true ? 'alert-danger' : 'alert-success' ?>" role="alert">
+         <i class="material-icons"><?= session()->getFlashdata('error') == true ? 'error' : 'check_circle' ?></i>
+         <div class="min-w-0 flex-1"><?= session()->getFlashdata('msg') ?></div>
+         <button type="button" class="close" aria-label="Tutup" onclick="this.parentElement.style.display='none'"><i class="material-icons">close</i></button>
+      </div>
+   <?php endif; ?>
+
+   <form action="<?= base_url('admin/guru/create'); ?>" method="post" class="card">
+      <?= csrf_field() ?>
+      <?php $validation = \Config\Services::validation(); ?>
+
+      <div class="card-head">
+         <h2 class="card-title">Data guru</h2>
+         <a href="<?= base_url('admin/guru') ?>" class="btn btn-ghost btn-sm"><i class="material-icons">arrow_back</i>Kembali</a>
+      </div>
+
+      <div class="card-body grid gap-3 sm:grid-cols-2">
+         <div>
+            <label class="label" for="nuptk">NUPTK <span class="text-danger-700">*</span></label>
+            <input type="text" id="nuptk" name="nuptk"
+               class="input <?= $validation->getError('nuptk') ? 'is-invalid' : ''; ?>"
+               placeholder="Contoh: 12345678" value="<?= old('nuptk') ?? $oldInput['nuptk'] ?? '' ?>">
+            <?php if ($validation->getError('nuptk')): ?>
+               <p class="field-error"><?= $validation->getError('nuptk'); ?></p>
+            <?php endif; ?>
+         </div>
+
+         <div>
+            <label class="label" for="nama">Nama lengkap <span class="text-danger-700">*</span></label>
+            <input type="text" id="nama" name="nama"
+               class="input <?= $validation->getError('nama') ? 'is-invalid' : ''; ?>"
+               placeholder="Nama lengkap guru" value="<?= old('nama') ?? $oldInput['nama'] ?? '' ?>" required>
+            <?php if ($validation->getError('nama')): ?>
+               <p class="field-error"><?= $validation->getError('nama'); ?></p>
+            <?php endif; ?>
+         </div>
+
+         <div>
+            <span class="label">Jenis kelamin <span class="text-danger-700">*</span></span>
+            <?php
+            if (old('jk') || (isset($oldInput) && is_array($oldInput))) {
+               $l = (old('jk') ?? ($oldInput['jk'] ?? '')) == '1' ? 'checked' : '';
+               $p = (old('jk') ?? ($oldInput['jk'] ?? '')) == '2' ? 'checked' : '';
+            }
+            ?>
+            <div class="flex h-10 items-center gap-5">
+               <label class="inline-flex items-center gap-2">
+                  <input type="radio" name="jk" value="1" <?= $l ?? ''; ?>>
+                  <span>Laki-laki</span>
+               </label>
+               <label class="inline-flex items-center gap-2">
+                  <input type="radio" name="jk" value="2" <?= $p ?? ''; ?>>
+                  <span>Perempuan</span>
+               </label>
             </div>
-            
-            <div class="card-body">
-               <?php if (session()->getFlashdata('msg')): ?>
-                  <div class="mb-6 p-4 rounded-lg flex items-center justify-between <?= session()->getFlashdata('error') == true ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200' ?>">
-                     <div class="flex items-center gap-3">
-                        <i class="material-icons"><?= session()->getFlashdata('error') == true ? 'error_outline' : 'check_circle' ?></i>
-                        <span class="font-medium"><?= session()->getFlashdata('msg') ?></span>
-                     </div>
-                     <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors" onclick="this.parentElement.style.display='none'">
-                        <i class="material-icons">close</i>
-                     </button>
-                  </div>
-               <?php endif; ?>
+            <?php if ($validation->getError('jk')): ?>
+               <p class="field-error"><?= $validation->getError('jk'); ?></p>
+            <?php endif; ?>
+         </div>
 
-               <form action="<?= base_url('admin/guru/create'); ?>" method="post" class="space-y-6">
-                  <?= csrf_field() ?>
-                  <?php $validation = \Config\Services::validation(); ?>
+         <div>
+            <label class="label" for="hp">No HP <span class="text-danger-700">*</span></label>
+            <input type="number" id="hp" name="no_hp"
+               class="input <?= $validation->getError('no_hp') ? 'is-invalid' : ''; ?>"
+               placeholder="Contoh: 08123456789" value="<?= old('no_hp') ?? $oldInput['no_hp'] ?? '' ?>" required>
+            <?php if ($validation->getError('no_hp')): ?>
+               <p class="field-error"><?= $validation->getError('no_hp'); ?></p>
+            <?php endif; ?>
+         </div>
 
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">NUPTK <span class="text-red-500">*</span></label>
-                        <input type="text" id="nuptk" name="nuptk"
-                           class="form-control <?= $validation->getError('nuptk') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Contoh: 12345678" value="<?= old('nuptk') ?? $oldInput['nuptk'] ?? '' ?>">
-                        <?php if ($validation->getError('nuptk')): ?>
-                           <p class="mt-1 text-sm text-red-500"><?= $validation->getError('nuptk'); ?></p>
-                        <?php endif; ?>
-                     </div>
+         <div class="sm:col-span-2">
+            <label class="label" for="alamat">Alamat</label>
+            <input type="text" id="alamat" name="alamat" class="input"
+               placeholder="Alamat lengkap" value="<?= old('alamat') ?? $oldInput['alamat'] ?? '' ?>">
+         </div>
 
-                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
-                        <input type="text" id="nama" name="nama"
-                           class="form-control <?= $validation->getError('nama') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Masukkan nama lengkap" value="<?= old('nama') ?? $oldInput['nama'] ?? '' ?>" required>
-                        <?php if ($validation->getError('nama')): ?>
-                           <p class="mt-1 text-sm text-red-500"><?= $validation->getError('nama'); ?></p>
-                        <?php endif; ?>
-                     </div>
-
-                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin <span class="text-red-500">*</span></label>
-                        <?php
-                        if (old('jk') || (isset($oldInput) && is_array($oldInput))) {
-                           $l = (old('jk') ?? ($oldInput['jk'] ?? '')) == '1' ? 'checked' : '';
-                           $p = (old('jk') ?? ($oldInput['jk'] ?? '')) == '2' ? 'checked' : '';
-                        }
-                        ?>
-                        <div class="flex gap-4 p-2">
-                           <label class="flex items-center gap-2 cursor-pointer">
-                              <input type="radio" name="jk" value="1" class="w-4 h-4 text-success focus:ring-success" <?= $l ?? ''; ?>>
-                              <span class="text-sm font-medium text-gray-700">Laki-laki</span>
-                           </label>
-                           <label class="flex items-center gap-2 cursor-pointer">
-                              <input type="radio" name="jk" value="2" class="w-4 h-4 text-success focus:ring-success" <?= $p ?? ''; ?>>
-                              <span class="text-sm font-medium text-gray-700">Perempuan</span>
-                           </label>
-                        </div>
-                        <?php if ($validation->getError('jk')): ?>
-                           <p class="mt-1 text-sm text-red-500"><?= $validation->getError('jk'); ?></p>
-                        <?php endif; ?>
-                     </div>
-
-                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">No HP</label>
-                        <input type="number" id="hp" name="no_hp"
-                           class="form-control <?= $validation->getError('no_hp') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Contoh: 08123456789" value="<?= old('no_hp') ?? $oldInput['no_hp'] ?? '' ?>" required>
-                        <?php if ($validation->getError('no_hp')): ?>
-                           <p class="mt-1 text-sm text-red-500"><?= $validation->getError('no_hp'); ?></p>
-                        <?php endif; ?>
-                     </div>
-                     
-                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
-                        <input type="text" id="alamat" name="alamat" class="form-control"
-                           placeholder="Masukkan alamat lengkap" value="<?= old('alamat') ?? $oldInput['alamat'] ?? '' ?>">
-                     </div>
-
-                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">RFID Code</label>
-                        <input type="text" id="rfid" name="rfid"
-                           class="form-control <?= $validation->getError('rfid') ? 'border-red-500 focus:ring-red-500' : ''; ?>"
-                           placeholder="Tap RFID Card here" value="<?= old('rfid') ?? $oldInput['rfid'] ?? '' ?>">
-                        <?php if ($validation->getError('rfid')): ?>
-                           <p class="mt-1 text-sm text-red-500"><?= $validation->getError('rfid'); ?></p>
-                        <?php endif; ?>
-                     </div>
-                  </div>
-
-                  <div class="pt-6 border-t border-gray-100 flex justify-end gap-3">
-                     <button type="reset" class="btn btn-outline hover:bg-gray-50">Reset</button>
-                     <button type="submit" class="btn btn-success">
-                        <i class="material-icons">save</i> Simpan Data Guru
-                     </button>
-                  </div>
-               </form>
-
-            </div>
+         <div class="sm:col-span-2">
+            <label class="label inline-flex items-center gap-1" for="rfid">
+               Kode RFID
+               <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Klik kolom ini lalu tempelkan kartu ke pembaca RFID. Boleh dikosongkan.</span></span>
+            </label>
+            <input type="text" id="rfid" name="rfid"
+               class="input <?= $validation->getError('rfid') ? 'is-invalid' : ''; ?>"
+               placeholder="Tempelkan kartu RFID" value="<?= old('rfid') ?? $oldInput['rfid'] ?? '' ?>">
+            <?php if ($validation->getError('rfid')): ?>
+               <p class="field-error"><?= $validation->getError('rfid'); ?></p>
+            <?php endif; ?>
          </div>
       </div>
-   </div>
+
+      <div class="card-foot">
+         <button type="reset" class="btn btn-secondary">Reset</button>
+         <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+   </form>
 </div>
 <?= $this->endSection() ?>
