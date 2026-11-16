@@ -1,37 +1,37 @@
-<div class="card-body">
-    <div class="row">
-        <div class="col-auto me-auto">
-            <div class="pt-3 pl-3">
-                <h4><b>Absen Siswa</b></h4>
-                <p>Daftar siswa muncul disini</p>
-            </div>
+<?php
+$statusIcon = [
+    'success'  => 'check_circle',
+    'warning'  => 'sick',
+    'info'     => 'assignment',
+    'danger'   => 'cancel',
+    'disabled' => 'schedule',
+];
+?>
+<div>
+    <div class="card-head">
+        <div>
+            <h2 class="card-title">Kelas <?= $kelas; ?></h2>
+            <p class="card-sub"><?= count($data ?? []); ?> siswa</p>
         </div>
-        <div class="col">
-            <a href="#" class="btn btn-primary pl-3 mr-3 mt-3" onclick="getSiswa(lastIdKelas, lastKelas)" data-toggle="tab">
-                <i class="material-icons mr-2">refresh</i> Refresh
-            </a>
-        </div>
-        <div class="col-auto">
-            <div class="px-4">
-                <h3 class="text-end">
-                    <b class="text-primary"><?= $kelas; ?></b>
-                </h3>
-            </div>
-        </div>
+        <a href="#" class="btn btn-secondary" onclick="getSiswa(lastIdKelas, lastKelas)" data-toggle="tab">
+            <i class="material-icons">refresh</i>Muat ulang
+        </a>
     </div>
 
-    <div id="dataSiswa" class="card-body table-responsive pb-5">
+    <div id="dataSiswa" class="table-wrap">
         <?php if (!empty($data)): ?>
-            <table class="table table-hover">
-                <thead class="text-primary">
-                    <th><b>No.</b></th>
-                    <th><b>NIS</b></th>
-                    <th><b>Nama Siswa</b></th>
-                    <th><b>Kehadiran</b></th>
-                    <th><b>Jam masuk</b></th>
-                    <th><b>Jam pulang</b></th>
-                    <th><b>Keterangan</b></th>
-                    <th><b>Aksi</b></th>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="num">No.</th>
+                        <th>NIS</th>
+                        <th>Nama siswa</th>
+                        <th>Kehadiran</th>
+                        <th>Jam masuk</th>
+                        <th>Jam pulang</th>
+                        <th>Keterangan</th>
+                        <th class="text-right">Aksi</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <?php $no = 1; ?>
@@ -41,22 +41,20 @@
                         $kehadiran = kehadiran($idKehadiran);
                         ?>
                         <tr>
-                            <td><?= $no; ?></td>
-                            <td><?= esc($value['nis']); ?></td>
-                            <td><b><?= esc($value['nama_siswa']); ?></b></td>
+                            <td class="num"><?= $no; ?></td>
+                            <td class="whitespace-nowrap tabular-nums text-slate-600"><?= esc($value['nis']); ?></td>
+                            <td class="whitespace-nowrap font-medium text-slate-900"><?= esc($value['nama_siswa']); ?></td>
                             <td>
-                                <p class="p-2 my-auto w-100 badge badge-<?= $kehadiran['color']; ?> text-center">
-                                    <b><?= $kehadiran['text']; ?></b>
-                                </p>
+                                <span class="status <?= $kehadiran['color'] === 'disabled' ? 'status-muted' : 'status-' . $kehadiran['color']; ?>"><i class="material-icons"><?= $statusIcon[$kehadiran['color']] ?? 'schedule'; ?></i><?= $kehadiran['text']; ?></span>
                             </td>
-                            <td><b><?= $value['jam_masuk'] ?? '-'; ?></b></td>
-                            <td><b><?= $value['jam_keluar'] ?? '-'; ?></b></td>
-                            <td><?= $value['keterangan'] ?? '-'; ?></td>
-                            <td>
-                                <button data-bs-toggle="modal" data-bs-target="#ubahModal" onclick="getDataKehadiran(<?= $value['id_presensi'] ?? '-1'; ?>, <?= $value['id_siswa']; ?>)" class="btn btn-info p-2"
+                            <td class="whitespace-nowrap tabular-nums"><?= $value['jam_masuk'] ?? '-'; ?></td>
+                            <td class="whitespace-nowrap tabular-nums"><?= $value['jam_keluar'] ?? '-'; ?></td>
+                            <td class="min-w-[10rem] text-slate-600"><?= $value['keterangan'] ?? '-'; ?></td>
+                            <td class="text-right">
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#ubahModal" onclick="getDataKehadiran(<?= $value['id_presensi'] ?? '-1'; ?>, <?= $value['id_siswa']; ?>)" class="btn btn-secondary btn-sm"
                                     id="<?= esc($value['nis']); ?>">
                                     <i class="material-icons">edit</i>
-                                    Edit
+                                    Ubah
                                 </button>
                             </td>
                         </tr>
@@ -65,11 +63,7 @@
                 </tbody>
             </table>
         <?php else: ?>
-            <div class="row">
-                <div class="col">
-                    <h4 class="text-center text-danger">Data tidak ditemukan</h4>
-                </div>
-            </div>
+            <p class="empty">Data tidak ditemukan.</p>
         <?php endif; ?>
     </div>
 </div>

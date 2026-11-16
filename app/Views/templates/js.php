@@ -13,4 +13,3 @@ $assetVersion = '1.0.4';
 <script src="<?= base_url('assets/js/plugins/file-uploader/js/ui.js?v=' . $assetVersion); ?>"></script>
 <!-- Custom App JS -->
 <script src="<?= base_url('assets/js/custom.js?v=' . $assetVersion) ?>" type="text/javascript"></script>
-<!-- NOTE: material-dashboard.js intentionally excluded — it conflicts with new layout -->

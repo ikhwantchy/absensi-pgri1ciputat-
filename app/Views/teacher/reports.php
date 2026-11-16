@@ -1,42 +1,33 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
-<div class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header card-header-primary">
-                        <h4 class="card-title"><b>Generate Laporan Kelas
-                                <?= $kelas['kelas']; ?></b></h4>
-                        <p class="card-category">Pilih bulan untuk mendownload laporan presensi</p>
-                    </div>
-                    <div class="card-body">
-                        <form action="<?= base_url('teacher/laporan/generate'); ?>" method="post">
-                            <?= csrf_field() ?>
-                            <div class="row" style="margin-top: 2rem;">
-                                <div class="col-md-6">
-                                    <div class="form-group bmd-form-group is-filled">
-                                        <label class="bmd-label-static">Pilih Bulan</label>
-                                        <input type="month" id="bulan" name="bulan" class="form-control"
-                                            value="<?= date('Y-m'); ?>" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group bmd-form-group is-filled">
-                                        <label class="bmd-label-static">Format Laporan</label>
-                                        <select class="form-control" name="type" id="type">
-                                            <option value="pdf">PDF</option>
-                                            <option value="doc">Word (.doc)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary mt-4">Generate & Download</button>
-                        </form>
-                    </div>
-                </div>
+<div class="max-w-3xl space-y-4">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2 class="card-title">Laporan kelas <?= $kelas['kelas']; ?></h2>
+                <p class="card-sub">Rekap kehadiran bulanan</p>
             </div>
         </div>
-    </div>
+        <form action="<?= base_url('teacher/laporan/generate'); ?>" method="post">
+            <?= csrf_field() ?>
+            <div class="card-body grid gap-3 sm:grid-cols-2">
+                <div>
+                    <label for="bulan" class="label">Bulan</label>
+                    <input type="month" id="bulan" name="bulan" class="input"
+                        value="<?= date('Y-m'); ?>" required>
+                </div>
+                <div>
+                    <label for="type" class="label">Format</label>
+                    <select class="input" name="type" id="type">
+                        <option value="pdf">PDF</option>
+                        <option value="doc">Word (.doc)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-foot">
+                <button type="submit" class="btn btn-primary"><i class="material-icons">download</i>Unduh laporan</button>
+            </div>
+        </form>
+    </section>
 </div>
 <?= $this->endSection() ?>

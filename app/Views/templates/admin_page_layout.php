@@ -4,42 +4,32 @@
 <?= $this->include("templates/head") ?>
 
 <body>
+   <div class="flex min-h-screen">
+      <?= $this->include("templates/sidebar") ?>
 
-<div class="layout-wrapper">
+      <div class="flex min-w-0 flex-1 flex-col">
+         <?= $this->include("templates/navbar") ?>
 
-   <!-- Sidebar -->
-   <?= $this->include("templates/sidebar") ?>
+         <main class="flex-1 p-4 md:p-6">
+            <?= $this->renderSection("content") ?>
+         </main>
 
-   <!-- Main Content -->
-   <div class="main-content">
-
-      <!-- Header / Topbar -->
-      <?= $this->include("templates/navbar") ?>
-
-      <!-- Page Content -->
-      <div class="content-body">
-         <?= $this->renderSection("content") ?>
+         <?= $this->include("templates/footer") ?>
       </div>
+   </div>
 
-      <!-- Footer -->
-      <?= $this->include("templates/footer") ?>
+   <?= $this->include("templates/js") ?>
 
-   </div><!-- /.main-content -->
+   <script>
+      var BaseConfig = {
+         baseURL: '<?= base_url() ?>',
+         csrfTokenName: '<?= csrf_token() ?>',
+         textOk: "Ok",
+         textCancel: "Batal"
+      };
+   </script>
 
-</div><!-- /.layout-wrapper -->
-
-<?= $this->include("templates/js") ?>
-
-<script>
-   var BaseConfig = {
-      baseURL: '<?= base_url() ?>',
-      csrfTokenName: '<?= csrf_token() ?>',
-      textOk: "Ok",
-      textCancel: "Batalkan"
-   };
-</script>
-
-<?= $this->renderSection("scripts") ?>
-
+   <?= $this->renderSection("scripts") ?>
 </body>
+
 </html>

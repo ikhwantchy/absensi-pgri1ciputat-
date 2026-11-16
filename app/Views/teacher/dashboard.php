@@ -1,107 +1,83 @@
 <?= $this->extend('templates/admin_page_layout') ?>
-<?= $this->section('styles') ?>
-<style>
-    .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-    }
-</style>
-<?= $this->endSection() ?>
 <?= $this->section('content') ?>
-<div class="content">
-    <div class="container-fluid">
-        <?php if (isset($no_class)): ?>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="text-center">Anda belum ditugaskan sebagai Wali Kelas di kelas manapun.</h3>
-                            <p class="text-center">Silahkan hubungi administrator untuk penugasan kelas.</p>
-                        </div>
-                    </div>
+<div class="space-y-4">
+    <?php if (isset($no_class)): ?>
+        <section class="card">
+            <div class="card-body flex items-start gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><i class="material-icons">meeting_room</i></span>
+                <div>
+                    <p class="font-semibold text-slate-900">Anda belum ditugaskan sebagai wali kelas.</p>
+                    <p class="text-slate-600">Hubungi administrator untuk penugasan kelas.</p>
                 </div>
             </div>
-        <?php else: ?>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card card-stats">
-                        <div class="card-header card-header-info card-header-icon">
-                            <div class="card-icon">
-                                <i class="material-icons">school</i>
-                            </div>
-                            <p class="card-category">Kelas Anda</p>
-                            <h3 class="card-title">
-                                <?= $kelas['tingkat'] . ' ' . $kelas['index_kelas']; ?>
-                            </h3>
-                        </div>
-                        <div class="card-footer">
-                            <div class="stats">
-                                <i class="material-icons">person</i> Total Siswa: <?= $summary['total_siswa']; ?>
-                                <span class="mx-2">|</span>
-                                <i class="material-icons text-primary">qr_code</i> <a class="text-primary" href="<?= base_url('teacher/qr'); ?>">Download QR Code Siswa</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header card-header-primary">
-                            <h4 class="card-title"><b>Statistik Kehadiran Kelas Hari Ini</b></h4>
-                            <p class="card-category"><?= date('d F Y'); ?></p>
-                        </div>
-                        <div class="card-body">
-                            <div class="row text-center flex-nowrap">
-                                <div class="col-2">
-                                    <h5 class="text-success text-nowrap"><b>Hadir</b></h5>
-                                    <h4 class="text-nowrap"><?= $summary['hadir_hari_ini']; ?></h4>
-                                </div>
-                                <div class="col-2">
-                                    <h5 class="text-warning text-nowrap"><b>Sakit</b></h5>
-                                    <h4 class="text-nowrap"><?= $summary['sakit_hari_ini']; ?></h4>
-                                </div>
-                                <div class="col-2">
-                                    <h5 class="text-info text-nowrap"><b>Izin</b></h5>
-                                    <h4 class="text-nowrap"><?= $summary['izin_hari_ini']; ?></h4>
-                                </div>
-                                <div class="col-2">
-                                    <h5 class="text-danger text-nowrap"><b>Alfa</b></h5>
-                                    <h4 class="text-nowrap"><?= $summary['alfa_hari_ini']; ?></h4>
-                                </div>
-                                <div class="col-1">
-                                    <div class="border-right mx-auto h-100" style="width: 0;"></div>
-                                </div>
-                                <div class="col-2 col-sm-3">
-                                    <h5 class="text-primary text-nowrap"><b>Total</b></h5>
-                                    <h4 class="text-nowrap"><?= $summary['total_siswa']; ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header card-header-info">
-                            <h4 class="card-title">Tingkat Kehadiran Kelas (7 Hari Terakhir)</h4>
-                            <p class="card-category">Statistik kehadiran siswa per status</p>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="kehadiranSiswaKelas"></canvas>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="stats">
-                                <i class="material-icons text-info">assessment</i> <a class="text-info" href="<?= base_url('teacher/laporan'); ?>">Download Laporan</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </section>
+    <?php else: ?>
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div class="card flex items-center gap-3 p-4">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700"><i class="material-icons">meeting_room</i></span>
+                <span class="min-w-0">
+                    <span class="block text-xs font-medium text-slate-500">Kelas Anda</span>
+                    <span class="block truncate text-xl font-semibold leading-7 text-slate-900"><?= $kelas['tingkat'] . ' ' . $kelas['index_kelas']; ?></span>
+                </span>
             </div>
-        <?php endif; ?>
-    </div>
+            <div class="card flex items-center gap-3 p-4">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700"><i class="material-icons">groups</i></span>
+                <span class="min-w-0">
+                    <span class="block text-xs font-medium text-slate-500">Siswa</span>
+                    <span class="block text-xl font-semibold leading-7 tabular-nums text-slate-900"><?= $summary['total_siswa']; ?></span>
+                </span>
+            </div>
+            <a href="<?= base_url('teacher/qr'); ?>" class="card flex items-center gap-3 p-4 text-slate-800 no-underline transition hover:ring-1 hover:ring-primary-200">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700"><i class="material-icons">qr_code_2</i></span>
+                <span class="min-w-0">
+                    <span class="block text-xs font-medium text-slate-500">QR siswa</span>
+                    <span class="block text-sm font-semibold leading-7 text-slate-900">Unduh</span>
+                </span>
+            </a>
+            <a href="<?= base_url('teacher/laporan'); ?>" class="card flex items-center gap-3 p-4 text-slate-800 no-underline transition hover:ring-1 hover:ring-primary-200">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700"><i class="material-icons">assessment</i></span>
+                <span class="min-w-0">
+                    <span class="block text-xs font-medium text-slate-500">Laporan</span>
+                    <span class="block text-sm font-semibold leading-7 text-slate-900">Unduh</span>
+                </span>
+            </a>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-5">
+            <section class="card lg:col-span-2 self-start">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Absensi kelas hari ini</h2>
+                        <p class="card-sub"><?= date('d F Y'); ?></p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <?= view('admin/_dashboard_siswa_stats', [
+                        'hadir' => $summary['hadir_hari_ini'],
+                        'sakit' => $summary['sakit_hari_ini'],
+                        'izin' => $summary['izin_hari_ini'],
+                        'alfa' => $summary['alfa_hari_ini'],
+                        'totalSiswa' => $summary['total_siswa']
+                    ]) ?>
+                </div>
+            </section>
+
+            <section class="card lg:col-span-3">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Tren kehadiran kelas</h2>
+                        <p class="card-sub">7 hari terakhir</p>
+                    </div>
+                    <a class="text-xs font-semibold no-underline hover:underline" href="<?= base_url('teacher/laporan'); ?>">Unduh laporan</a>
+                </div>
+                <div class="card-body">
+                    <div class="relative h-64 w-full">
+                        <canvas id="kehadiranSiswaKelas"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    <?php endif; ?>
 </div>
 <?= $this->endSection() ?>
 
@@ -113,10 +89,10 @@
         const chartLabels = <?= json_encode($dateRange) ?>;
 
         const chartColors = {
-            hadir: { border: '#4caf50', bg: 'rgba(76, 175, 80, 1)' },
-            sakit: { border: '#ff9800', bg: 'rgba(255, 152, 0, 1)' },
-            izin: { border: '#00bcd4', bg: 'rgba(0, 188, 212, 1)' },
-            alfa: { border: '#f44336', bg: 'rgba(244, 67, 54, 1)' }
+            hadir: { border: '#16a34a', bg: '#16a34a' },
+            sakit: { border: '#f59e0b', bg: '#f59e0b' },
+            izin: { border: '#0ea5e9', bg: '#0ea5e9' },
+            alfa: { border: '#ef4444', bg: '#ef4444' }
         };
 
         function initTeacherCharts() {
@@ -178,7 +154,7 @@
                             },
                             tooltip: {
                                 enabled: true,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                backgroundColor: '#0f172a',
                                 titleFont: { size: 14 },
                                 bodyFont: { size: 13 },
                                 padding: 12,

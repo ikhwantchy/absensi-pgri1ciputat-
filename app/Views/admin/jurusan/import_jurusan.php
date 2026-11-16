@@ -1,125 +1,63 @@
 <?= $this->extend('templates/admin_page_layout') ?>
 <?= $this->section('content') ?>
+<div class="max-w-3xl space-y-4">
+   <?= view('admin/_messages'); ?>
 
-<!-- PAGE HEADER -->
-<div class="admin-page-header">
-   <div>
-      <h1 class="page-title">Import Data Jurusan</h1>
-      <div class="breadcrumb">
-         <a href="<?= base_url('admin/dashboard'); ?>">Dashboard</a>
-         <span class="breadcrumb-sep">›</span>
-         <a href="<?= base_url('admin/kelas'); ?>">Data Kelas & Jurusan</a>
-         <span class="breadcrumb-sep">›</span>
-         <span class="breadcrumb-active">Import Data</span>
+   <section class="card">
+      <div class="card-head">
+         <h2 class="card-title inline-flex items-center gap-1">
+            Impor jurusan dari CSV
+            <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Gunakan template CSV yang disediakan. Jangan pakai tanda kutip ganda (") di dalam file.</span></span>
+         </h2>
+         <a href="<?= base_url('admin/kelas'); ?>" class="btn btn-ghost btn-sm"><i class="material-icons">arrow_back</i>Data kelas</a>
       </div>
-   </div>
-</div>
 
-<?= view('admin/_messages'); ?>
-
-<div class="card">
-   <div class="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
-      <!-- Left: Upload Section (60%) -->
-      <div class="flex-1 p-6 sm:p-8">
-         <div class="mb-6">
-            <h2 style="font-size:16px;font-weight:600;color:var(--text-primary); margin:0 0 4px 0;">Bulk Upload CSV Jurusan</h2>
-            <p style="font-size:13px;color:var(--text-muted); margin:0;">Import data jurusan dari CSV</p>
+      <div class="card-body grid gap-4">
+         <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+               <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">1</span>
+               <span class="text-sm font-medium text-slate-800">Unduh template, lalu isi data</span>
+            </div>
+            <form action="<?= base_url('admin/jurusan/downloadCSVFilePost'); ?>" method="post">
+               <?= csrf_field(); ?>
+               <button class="btn btn-secondary btn-sm" name="submit" value="csv_jurusan_template">
+                  <i class="material-icons">download</i>Template CSV
+               </button>
+            </form>
          </div>
 
-         <div class="form-group mb-0" style="padding-bottom: 0 !important;">
+         <div class="grid gap-2.5">
+            <div class="flex items-center gap-2.5">
+               <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">2</span>
+               <span class="text-sm font-medium text-slate-800">Unggah file CSV</span>
+            </div>
             <div class="dm-uploader-container">
-               <div id="drag-and-drop-zone" class="dm-uploader p-6 sm:p-8" style="border: 2px dashed rgba(124, 58, 237, 0.25); border-radius: var(--r-xl); text-align: center; background: rgba(124, 58, 237, 0.01); transition: all 0.3s ease; cursor: pointer;">
-                  <p class="dm-upload-icon" style="margin-bottom: 16px;">
-                     <i class="material-icons" style="font-size: 56px; color: var(--primary); opacity: 0.85;">cloud_upload</i>
-                  </p>
-                  <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-top:0; margin-bottom: 4px;">Tarik &amp; Letakkan File CSV</h3>
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">atau klik tombol di bawah untuk memilih file</p>
-                  <div class="btn btn-primary" style="position: relative; overflow: hidden; padding: 10px 24px; border-radius: var(--r-md); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);">
-                     <span>Pilih File Browser</span>
-                     <input type="file" title='Click to add Files' style="position: absolute; top: 0; right: 0; margin: 0; padding: 0; font-size: 20px; cursor: pointer; opacity: 0; height: 100%;" />
+               <div id="drag-and-drop-zone" class="dm-uploader cursor-pointer">
+                  <i class="material-icons text-3xl! text-slate-400">upload_file</i>
+                  <p class="mt-1 text-sm text-slate-600">Tarik file CSV ke sini, atau</p>
+                  <div class="btn btn-primary relative mt-3 overflow-hidden">
+                     <span>Pilih file</span>
+                     <input type="file" title='Click to add Files' class="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
                   </div>
                </div>
             </div>
 
-            <!-- Upload Progress/Spinner -->
-            <div id="csv_upload_spinner" class="csv-upload-spinner" style="display:none; text-align: center; margin-top: 24px;">
-               <strong class="text-csv-importing" style="font-size: 14px; color: var(--primary);">Mengimpor Data Jurusan...</strong>
-               <strong class="text-csv-import-completed" style="font-size: 14px; color: var(--success); display: none;">Selesai!</strong>
-               <div class="spinner-bounce" style="margin-top: 10px;">
-                  <div class="bounce1"></div>
-                  <div class="bounce2"></div>
-                  <div class="bounce3"></div>
-               </div>
+            <div id="csv_upload_spinner" class="csv-upload-spinner text-center" style="display:none;">
+               <strong class="text-csv-importing text-sm font-semibold text-primary-700">Mengimpor data jurusan…</strong>
+               <strong class="text-csv-import-completed text-sm font-semibold text-success-700" style="display: none;">Selesai.</strong>
+               <div class="spinner-bounce"><div class="spinner mt-3"></div></div>
             </div>
 
-            <!-- Upload Results List -->
-            <div class="csv-uploaded-files-container" style="margin-top: 24px; max-height: 250px; overflow-y: auto;">
-               <ul id="csv_uploaded_files" class="list-group csv-uploaded-files" style="list-style: none; padding: 0; margin: 0;"></ul>
+            <div class="csv-uploaded-files-container max-h-64 overflow-y-auto">
+               <ul id="csv_uploaded_files" class="list-group csv-uploaded-files divide-y divide-slate-100 text-sm [&>li]:py-1.5 [&>.list-group-item-danger]:text-red-700 [&>.list-group-item-success]:text-green-700 [&>.list-group-item-warning]:text-amber-700"></ul>
             </div>
          </div>
       </div>
-
-      <!-- Right: Help & Instructions (40%) -->
-      <div class="w-full lg:w-[320px] p-6 sm:p-8 bg-gray-50/50">
-         <div class="mb-6">
-            <h2 style="font-size:16px;font-weight:600;color:var(--text-primary); margin:0 0 4px 0;">Panduan Import</h2>
-            <p style="font-size:13px;color:var(--text-muted); margin:0;">Dokumen bantuan untuk file CSV</p>
-         </div>
-
-         <form action="<?= base_url('admin/jurusan/downloadCSVFilePost'); ?>" method="post">
-            <?= csrf_field(); ?>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-               <button class="btn btn-primary w-full justify-center" name="submit" value="csv_jurusan_template" style="background: var(--primary); color: #fff;">
-                  <i class="material-icons">file_download</i> Download Template CSV
-               </button>
-            </div>
-         </form>
-
-         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-soft); font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
-            <strong style="color: var(--text-primary);">Catatan Penting:</strong>
-            <ul style="padding-left: 16px; margin-top: 8px; color: var(--text-muted); list-style-type: disc;">
-               <li>Gunakan template CSV yang disediakan.</li>
-               <li>Jangan gunakan tanda kutip ganda (") di dalam file CSV.</li>
-            </ul>
-         </div>
-      </div>
-   </div>
+   </section>
 </div>
-
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<style>
-/* Style override for dm-uploader active state */
-#drag-and-drop-zone.active {
-    border-color: var(--primary) !important;
-    background-color: var(--primary-soft) !important;
-}
-/* Style for uploaded list items */
-#csv_uploaded_files li {
-    padding: 10px 14px;
-    margin-bottom: 8px;
-    border-radius: var(--r-md);
-    font-size: 13px;
-    font-weight: 500;
-}
-.list-group-item-success {
-    background: var(--success-soft);
-    color: #065F46;
-    border: 1px solid rgba(16,185,129,0.2);
-}
-.list-group-item-danger {
-    background: var(--danger-soft);
-    color: #991B1B;
-    border: 1px solid rgba(239,68,68,0.2);
-}
-.list-group-item-warning {
-    background: var(--warning-soft);
-    color: #92400E;
-    border: 1px solid rgba(245,158,11,0.2);
-}
-</style>
-
 <script>
     $(function () {
         $('#drag-and-drop-zone').dmUploader({

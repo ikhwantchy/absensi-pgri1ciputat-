@@ -11,100 +11,59 @@ if (!function_exists('avatarColor')) {
 }
 ?>
 
-<!-- PAGE HEADER (Clean, avoiding MD conflict) -->
-<div class="admin-page-header">
-   <div>
-      <h1 class="page-title">Absensi Siswa</h1>
-      <div class="breadcrumb">
-         <a href="<?= base_url('admin/dashboard'); ?>">Dashboard</a>
-         <span class="breadcrumb-sep">›</span>
-         <span class="breadcrumb-active">Absensi Siswa</span>
+<div class="space-y-4">
+   <!-- Filter: tanggal + kelas -->
+   <div class="filter-bar">
+      <div class="min-w-[10rem] flex-1 sm:max-w-[13rem] sm:flex-none">
+         <label class="label" for="tanggal">Tanggal</label>
+         <input type="date" id="tanggal" name="tanggal" class="input" value="<?= date('Y-m-d'); ?>" onchange="onDateChange()">
       </div>
-   </div>
-</div>
 
-<!-- PREMIUM HERO BANNER -->
-<div class="premium-hero-card">
-   <div>
-      <h2 class="premium-hero-title">Rekap Absensi Siswa</h2>
-      <p class="premium-hero-subtitle">Pantau tingkat kehadiran harian, kedisiplinan waktu, dan rekam jejak presensi seluruh kelas secara real-time.</p>
-   </div>
-   <div class="premium-hero-badge">
-      <i class="material-icons" style="font-size: 18px; color: #34D399;">verified</i>
-      <span>Sistem Aktif & Terhubung</span>
-   </div>
-</div>
+      <div class="w-full">
+         <div class="label">Kelas</div>
+         <div class="grid gap-y-2" id="klassPills">
+            <?php
+            $groupedKelas = [];
+            foreach ($kelas as $value) {
+                $tingkat = $value['tingkat'];
+                $groupedKelas[$tingkat][] = $value;
+            }
+            $tingkatOrder = ['VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+            foreach (array_keys($groupedKelas) as $k) {
+                if (!in_array($k, $tingkatOrder)) {
+                    $tingkatOrder[] = $k;
+                }
+            }
 
-<!-- FILTER CARD: Kelas + Tanggal -->
-<div class="premium-filter-card">
-   <div class="flex items-center justify-between" style="margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-      <div class="flex items-center gap-3">
-         <div style="width: 44px; height: 44px; border-radius: var(--r-md); background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center;">
-            <i class="material-icons" style="font-size: 24px;">class</i>
+            foreach ($tingkatOrder as $tingkat):
+                if (!empty($groupedKelas[$tingkat])):
+            ?>
+               <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="w-full text-xs font-semibold text-slate-500 sm:w-24">Tingkat <?= esc($tingkat) ?></span>
+                  <?php foreach ($groupedKelas[$tingkat] as $value):
+                     $idKelas   = $value['id_kelas'];
+                     $namaKelas = $value['kelas'];
+                  ?>
+                     <button type="button" id="kelas-<?= $idKelas; ?>"
+                             onclick="getSiswa(<?= $idKelas; ?>, '<?= esc($namaKelas); ?>')"
+                             class="kelas-pill rounded-md border border-slate-300 bg-white px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-50 [&.active]:border-primary-700 [&.active]:bg-primary-700 [&.active]:text-white">
+                        <?= esc($namaKelas); ?>
+                     </button>
+                  <?php endforeach; ?>
+               </div>
+            <?php
+                endif;
+            endforeach;
+            ?>
          </div>
-         <div>
-            <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Pilih Kelas & Tanggal</div>
-            <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Klik kelas di bawah untuk memuat rekap kehadiran pada tanggal yang dipilih</div>
-         </div>
-      </div>
-      <!-- Date Picker -->
-      <div class="date-picker-btn">
-         <i class="material-icons" style="font-size: 18px; color: var(--primary);">calendar_today</i>
-         <input type="date" id="tanggal" name="tanggal" value="<?= date('Y-m-d'); ?>" onchange="onDateChange()">
       </div>
    </div>
 
-    <!-- Class Pills Grouped by Tingkat -->
-    <div style="display: flex; flex-direction: column; gap: 14px;" id="klassPills">
-       <?php 
-       $groupedKelas = [];
-       foreach ($kelas as $value) {
-           $tingkat = $value['tingkat'];
-           $groupedKelas[$tingkat][] = $value;
-       }
-       $tingkatOrder = ['VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-       foreach (array_keys($groupedKelas) as $k) {
-           if (!in_array($k, $tingkatOrder)) {
-               $tingkatOrder[] = $k;
-           }
-       }
-       
-       foreach ($tingkatOrder as $tingkat): 
-           if (!empty($groupedKelas[$tingkat])):
-       ?>
-          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 4px 0;">
-             <div style="font-size: 11px; font-weight: 800; color: var(--primary); background: var(--primary-soft); padding: 5px 12px; border-radius: 20px; min-width: 90px; text-align: center; letter-spacing: 0.5px; text-transform: uppercase;">
-                Tingkat <?= esc($tingkat) ?>
-             </div>
-             <div style="display: flex; flex-wrap: wrap; gap: 8px; flex: 1;">
-                <?php foreach ($groupedKelas[$tingkat] as $value):
-                   $idKelas   = $value['id_kelas'];
-                   $namaKelas = $value['kelas'];
-                ?>
-                   <button id="kelas-<?= $idKelas; ?>"
-                           onclick="getSiswa(<?= $idKelas; ?>, '<?= esc($namaKelas); ?>')"
-                           class="kelas-pill">
-                      <?= esc($namaKelas); ?>
-                   </button>
-                <?php endforeach; ?>
-             </div>
-          </div>
-       <?php 
-           endif;
-       endforeach; 
-       ?>
-    </div>
-</div>
-
-<!-- DATA TABLE SECTION (loaded via AJAX) -->
-<div id="dataSiswa">
-   <!-- Empty state -->
-   <div class="card" style="text-align: center; padding: 64px 24px; border: 2px dashed #E5E7EB; box-shadow: none;">
-      <div style="width: 64px; height: 64px; background: var(--primary-soft); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
-         <i class="material-icons" style="font-size: 32px;">school</i>
+   <!-- Tabel absensi (dimuat via AJAX) -->
+   <div id="dataSiswa">
+      <div class="card">
+         <p class="empty">Pilih kelas untuk menampilkan absensi siswa.</p>
       </div>
-      <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Belum Ada Kelas yang Dipilih</div>
-      <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px; max-width: 380px; margin-left: auto; margin-right: auto;">Silakan pilih tanggal dan klik salah satu tombol kelas di atas untuk memuat daftar absensi siswa.</div>
    </div>
 </div>
 
@@ -113,12 +72,12 @@ if (!function_exists('avatarColor')) {
    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
          <div class="modal-header">
-            <h5 class="modal-title" id="modalLabel">Ubah Kehadiran Siswa</h5>
-            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
+            <h5 class="modal-title" id="modalLabel">Ubah kehadiran siswa</h5>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Tutup">
+               <i class="material-icons">close</i>
             </button>
          </div>
-         <div id="modalFormUbahSiswa" style="padding: 24px;"></div>
+         <div id="modalFormUbahSiswa"></div>
       </div>
    </div>
 </div>
@@ -138,9 +97,11 @@ function getSiswa(idKelas, kelas) {
    updatePill(idKelas);
 
    document.getElementById('dataSiswa').innerHTML = `
-      <div class="card" style="text-align:center;padding:48px 24px;">
-         <div class="spinner-border text-primary mb-3" role="status" style="color:var(--primary)!important;"></div>
-         <div style="font-size:13px;font-weight:500;color:var(--text-muted);">Memuat data kelas <strong style="color:var(--text-primary);">${kelas}</strong>...</div>
+      <div class="card">
+         <div class="empty">
+            <div class="spinner mt-0 mb-2"></div>
+            Memuat data kelas <strong class="text-slate-900">${kelas}</strong>…
+         </div>
       </div>`;
 
    jQuery.ajax({
@@ -153,9 +114,8 @@ function getSiswa(idKelas, kelas) {
       },
       error: function(xhr, status, thrown) {
          document.getElementById('dataSiswa').innerHTML =
-            `<div class="card" style="text-align:center;padding:48px;color:var(--danger);">
-               <i class="material-icons" style="font-size:40px;display:block;margin-bottom:12px;">error_outline</i>
-               Gagal memuat data. Coba lagi.
+            `<div class="card">
+               <p class="empty text-danger-700">Gagal memuat data. Coba lagi.</p>
              </div>`;
       }
    });

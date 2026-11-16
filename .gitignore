@@ -133,3 +133,6 @@ nb-configuration.xml
 
 *.zip
 bash.exe.stackdump
+
+# Tailwind build
+/node_modules/

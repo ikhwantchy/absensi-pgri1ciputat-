@@ -1,40 +1,17 @@
-<header class="header">
-   <!-- Mobile Toggle -->
-   <button class="mobile-toggle" onclick="document.getElementById('mainSidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show');" style="margin-right: 12px;">
-      <i class="material-icons">menu</i>
-   </button>
-
-   <!-- Title -->
-   <div class="flex-1">
-      <h1 class="header-title"><?= $title ?? ''; ?></h1>
+<header class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+   <div class="flex min-w-0 items-center gap-3">
+      <button type="button" class="btn btn-ghost btn-icon md:hidden" onclick="toggleSidebar(true)" aria-label="Buka menu">
+         <i class="material-icons">menu</i>
+      </button>
+      <h1 class="truncate text-base font-semibold text-slate-900"><?= esc($title ?? ''); ?></h1>
    </div>
 
-   <!-- Actions -->
-   <div class="header-actions">
-
-      <!-- Open Scanner Button -->
-      <a href="<?= base_url('scan/masuk'); ?>" class="btn btn-primary btn-sm">
-         <i class="material-icons" style="font-size:15px;">qr_code_scanner</i>
-         Open Scanner
+   <div class="flex items-center gap-2 sm:gap-3">
+      <a href="<?= base_url('scan/masuk'); ?>" class="btn btn-secondary btn-sm" title="Buka halaman scan kartu">
+         <i class="material-icons">contactless</i>
+         <span class="hidden sm:inline">Buka Scanner</span>
       </a>
-
-      <!-- Divider -->
-      <div style="width:1px; height:20px; background:var(--border);"></div>
-
-      <!-- User Info -->
-      <div class="flex items-center gap-2" style="padding: 0 4px;">
-         <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;">
-            <?= strtoupper(substr(user()->username, 0, 1)); ?>
-         </div>
-         <div style="line-height:1.3;">
-            <div style="font-size:12px;font-weight:600;color:var(--text-primary);"><?= user()->username; ?></div>
-            <div style="font-size:10px;color:var(--text-muted);"><?= user_role()->label(); ?></div>
-         </div>
-      </div>
-
-      <!-- Logout -->
-      <a href="<?= base_url('/logout'); ?>" class="header-icon-btn" title="Logout">
-         <i class="material-icons">logout</i>
-      </a>
+      <span class="hidden text-sm text-slate-600 lg:inline"><?= esc(user()->username); ?></span>
+      <a href="<?= base_url('/logout'); ?>" class="text-sm font-medium text-danger-600 no-underline hover:underline">Keluar</a>
    </div>
 </header>
