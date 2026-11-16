@@ -13,12 +13,6 @@
 
    <style>
       /* Kelas status yang diganti oleh JS di bawah. */
-      .mode-btn.masuk-active,
-      .mode-btn.pulang-active {
-         background-color: #2e3192;
-         color: #fff;
-      }
-
       .status-badge.connected {
          color: #15803d;
       }
@@ -77,19 +71,9 @@
          <!-- Control & Input Panel -->
          <section class="card flex flex-col gap-6 p-5 lg:col-span-2 lg:p-6">
 
-            <!-- Mode Selection Toggles -->
-            <div class="tabs shadow-none ring-1 ring-slate-200">
-               <button id="btnMasuk" class="mode-btn inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap py-2.5 text-sm font-semibold sm:text-base <?= $waktu == 'Masuk' ? 'masuk-active' : 'inactive' ?>" onclick="switchMode('Masuk')">
-                  <i class="material-icons">login</i> Absen masuk
-               </button>
-               <button id="btnPulang" class="mode-btn inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap py-2.5 text-sm font-semibold sm:text-base <?= $waktu == 'Pulang' ? 'pulang-active' : 'inactive' ?>" onclick="switchMode('Pulang')">
-                  <i class="material-icons">logout</i> Absen pulang
-               </button>
-            </div>
-
             <div>
                <h1 class="text-2xl font-semibold text-slate-900">Selamat datang</h1>
-               <p class="mt-1 text-base text-slate-500">Tempelkan kartu RFID pada reader untuk mencatat kehadiran.</p>
+               <p class="mt-1 text-base text-slate-500">Tempelkan kartu RFID. Tap pertama tercatat masuk, tap berikutnya tercatat pulang.</p>
             </div>
 
             <!-- RFID Input & Focus status -->
@@ -140,7 +124,6 @@
    <script src="<?= base_url('assets/js/core/jquery-3.5.1.min.js') ?>"></script>
    
    <script>
-      let currentMode = '<?= $waktu; ?>';
       let clearTimer = null;
       let audio = new Audio("<?= base_url('assets/audio/beep.mp3'); ?>");
 
@@ -169,24 +152,6 @@
       setInterval(updateClock, 1000);
       updateClock();
 
-      // Switch Kiosk mode (Masuk / Pulang)
-      function switchMode(mode) {
-         currentMode = mode;
-         const btnMasuk = $('#btnMasuk');
-         const btnPulang = $('#btnPulang');
-
-         if (mode === 'Masuk') {
-            btnMasuk.removeClass('inactive').addClass('masuk-active');
-            btnPulang.removeClass('pulang-active').addClass('inactive');
-         } else {
-            btnPulang.removeClass('inactive').addClass('pulang-active');
-            btnMasuk.removeClass('masuk-active').addClass('inactive');
-         }
-         
-         $('#rfidInput').focus();
-         resetKioskView();
-      }
-
       // Reset panel view to waiting state
       function resetKioskView() {
          $('#hasilScan').hide().html('');
@@ -205,7 +170,7 @@
          jQuery.ajax({
             url: "<?= base_url('scanner/cek'); ?>",
             type: 'post',
-            data: { 'unique_code': code, 'waktu': currentMode.toLowerCase() },
+            data: { 'unique_code': code, 'waktu': 'auto' },
             success: function (response) {
                audio.play().catch(e => console.log('Audio autoplay blocked'));
                
@@ -329,15 +294,6 @@
          // Initial focus
          rfidInput.focus();
          
-         // Auto-mode switching based on clock hours:
-         // Before 11:30 AM default to Masuk, after 11:30 AM default to Pulang harian
-         const hours = new Date().getHours();
-         const minutes = new Date().getMinutes();
-         if (hours > 11 || (hours === 11 && minutes >= 30)) {
-            switchMode('Pulang');
-         } else {
-            switchMode('Masuk');
-         }
       });
    </script>
 </body>

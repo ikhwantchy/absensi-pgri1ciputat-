@@ -7,7 +7,7 @@
    </div>
 
    <div class="flex items-center gap-2 sm:gap-3">
-      <a href="<?= base_url('scan/masuk'); ?>" class="btn btn-secondary btn-sm" title="Buka halaman scan kartu">
+      <a href="<?= base_url('scan'); ?>" class="btn btn-secondary btn-sm" title="Buka halaman scan kartu">
          <i class="material-icons">contactless</i>
          <span class="hidden sm:inline">Buka Scanner</span>
       </a>

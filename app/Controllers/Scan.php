@@ -29,15 +29,16 @@ class Scan extends BaseController
       $this->presensiGuruModel = new PresensiGuruModel();
    }
 
-   public function index($t = 'Masuk')
+   // Mode masuk/pulang ditentukan otomatis dari presensi hari ini; parameter URL lama diabaikan.
+   public function index($t = null)
    {
-      $data = ['waktu' => $t, 'title' => 'Absensi Siswa dan Guru Berbasis QR Code'];
+      $data = ['title' => 'Absensi Siswa dan Guru'];
       return view('scan/scan', $data);
    }
 
-   public function kiosk($t = 'Masuk')
+   public function kiosk($t = null)
    {
-      $data = ['waktu' => $t, 'title' => 'Kiosk Absensi - SMP PGRI 1 CIPUTAT'];
+      $data = ['title' => 'Kiosk Absensi'];
       return view('scan/kiosk', $data);
    }
 
@@ -45,7 +46,7 @@ class Scan extends BaseController
    {
       // ambil variabel POST
       $uniqueCode = $this->request->getVar('unique_code');
-      $waktuAbsen = $this->request->getVar('waktu');
+      $waktuAbsen = $this->request->getVar('waktu') ?: 'auto';
 
       $status = false;
       $type = TipeUser::Siswa;
@@ -87,10 +88,51 @@ class Scan extends BaseController
             return $this->absenPulang($type, $result);
             break;
 
+         case 'auto':
+            return $this->absenOtomatis($type, $result);
+
          default:
             return $this->showErrorView('Data tidak valid');
             break;
       }
+   }
+
+   /**
+    * Tap pertama hari ini dicatat masuk, tap berikutnya dicatat pulang.
+    * Tap ulang sebelum jeda JEDA_PULANG_MENIT (default 30) dianggap tidak sengaja.
+    */
+   public function absenOtomatis($type, $result)
+   {
+      $date = Time::today()->toDateString();
+
+      if ($type === TipeUser::Guru) {
+         $presensiModel = $this->presensiGuruModel;
+         $idPresensi = $presensiModel->cekAbsen($result['id_guru'], $date);
+      } else {
+         $presensiModel = $this->presensiSiswaModel;
+         $idPresensi = $presensiModel->cekAbsen($result['id_siswa'], $date);
+      }
+
+      if (! $idPresensi) {
+         return $this->absenMasuk($type, $result);
+      }
+
+      $presensi = $presensiModel->getPresensiById($idPresensi);
+      $jedaEnv = getenv('JEDA_PULANG_MENIT');
+      $jeda = ($jedaEnv === false || $jedaEnv === '') ? 30 : (int) $jedaEnv;
+
+      if (empty($presensi['jam_keluar']) && ! empty($presensi['jam_masuk']) && $jeda > 0) {
+         $bolehPulang = Time::parse($date . ' ' . $presensi['jam_masuk'])->addMinutes($jeda);
+
+         if (Time::now()->isBefore($bolehPulang)) {
+            return $this->showErrorView(
+               'Sudah absen masuk. Absen pulang bisa mulai pukul ' . $bolehPulang->format('H:i') . '.',
+               ['data' => $result, 'type' => $type, 'waktu' => 'masuk', 'presensi' => $presensi]
+            );
+         }
+      }
+
+      return $this->absenPulang($type, $result);
    }
 
    public function absenMasuk($type, $result)
