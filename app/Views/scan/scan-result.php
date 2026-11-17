@@ -19,7 +19,7 @@ switch ($type) {
          <div class="card-head justify-start">
             <?php if ($isTerlambat): ?>
                <i class="material-icons text-amber-700">schedule</i>
-               <h3 class="text-warning text-sm font-semibold text-amber-700">Absen <?= $waktu; ?> Berhasil (Terlambat)</h3>
+               <h3 class="text-warning text-sm font-semibold text-amber-700">Absen <?= $waktu; ?> berhasil (terlambat)</h3>
             <?php else: ?>
                <i class="material-icons text-green-700">check_circle</i>
                <h3 class="text-success text-sm font-semibold text-green-700">Absen <?= $waktu; ?> berhasil</h3>
@@ -56,7 +56,7 @@ switch ($type) {
          <div class="card-head justify-start">
             <?php if ($isTerlambat): ?>
                <i class="material-icons text-amber-700">schedule</i>
-               <h3 class="text-warning text-sm font-semibold text-amber-700">Absen <?= $waktu; ?> Berhasil (Terlambat)</h3>
+               <h3 class="text-warning text-sm font-semibold text-amber-700">Absen <?= $waktu; ?> berhasil (terlambat)</h3>
             <?php else: ?>
                <i class="material-icons text-green-700">check_circle</i>
                <h3 class="text-success text-sm font-semibold text-green-700">Absen <?= $waktu; ?> berhasil</h3>
