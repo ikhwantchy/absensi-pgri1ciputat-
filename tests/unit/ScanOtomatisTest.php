@@ -24,9 +24,13 @@ final class ScanOtomatisTest extends CIUnitTestCase
 
     private int $siswaId;
 
+    /** Tanggal hari ini: controller memakai Time::today(), yang tidak ikut Time::setTestNow(). */
+    private string $d;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->d = date('Y-m-d');
 
         // SQLite tidak punya CONCAT() yang dipakai query SiswaModel (MySQL).
         $this->db->initialize();
@@ -80,42 +84,42 @@ final class ScanOtomatisTest extends CIUnitTestCase
 
     public function testTapPertamaMasukTapKeduaPulang(): void
     {
-        $this->tap('2026-11-16 06:45:00')->assertSee('Absen masuk berhasil');
+        $this->tap($this->d . ' 06:45:00')->assertSee('Absen masuk berhasil');
         $rows = $this->presensi();
         $this->assertCount(1, $rows);
         $this->assertSame('06:45:00', $rows[0]['jam_masuk']);
         $this->assertEmpty($rows[0]['jam_keluar']);
 
-        $this->tap('2026-11-16 13:30:00')->assertSee('Absen pulang berhasil');
+        $this->tap($this->d . ' 13:30:00')->assertSee('Absen pulang berhasil');
         $rows = $this->presensi();
         $this->assertCount(1, $rows);
         $this->assertSame('13:30:00', $rows[0]['jam_keluar']);
 
-        $this->tap('2026-11-16 13:35:00')->assertSee('Anda sudah absen pulang hari ini');
+        $this->tap($this->d . ' 13:35:00')->assertSee('Anda sudah absen pulang hari ini');
         $this->assertSame('13:30:00', $this->presensi()[0]['jam_keluar']);
     }
 
     public function testTapUlangSebelumJedaTidakDicatatPulang(): void
     {
-        $this->tap('2026-11-16 06:45:00');
+        $this->tap($this->d . ' 06:45:00');
 
-        $this->tap('2026-11-16 06:46:00')->assertSee('Absen pulang bisa mulai pukul 07:15');
+        $this->tap($this->d . ' 06:46:00')->assertSee('Absen pulang bisa mulai pukul 07:15');
         $this->assertEmpty($this->presensi()[0]['jam_keluar']);
 
-        $this->tap('2026-11-16 07:15:00')->assertSee('Absen pulang berhasil');
+        $this->tap($this->d . ' 07:15:00')->assertSee('Absen pulang berhasil');
     }
 
     public function testJedaBisaDiaturLewatEnv(): void
     {
         putenv('JEDA_PULANG_MENIT=0');
 
-        $this->tap('2026-11-16 06:45:00');
-        $this->tap('2026-11-16 06:45:30')->assertSee('Absen pulang berhasil');
+        $this->tap($this->d . ' 06:45:00');
+        $this->tap($this->d . ' 06:45:30')->assertSee('Absen pulang berhasil');
     }
 
     public function testTanpaParameterWaktuDianggapOtomatis(): void
     {
-        Time::setTestNow('2026-11-16 06:45:00');
+        Time::setTestNow($this->d . ' 06:45:00');
         $this->post('scanner/cek', ['unique_code' => 'RF-TAP'])->assertSee('Absen masuk berhasil');
         $this->assertCount(1, $this->presensi());
     }
