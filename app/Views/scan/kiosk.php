@@ -13,6 +13,27 @@
 
    <style>
       /* Kelas status yang diganti oleh JS di bawah. */
+
+      /* Saat hasil tampil, panel tap disembunyikan secara visual saja:
+         input tetap fokus supaya tap berikutnya langsung terbaca. */
+      #kioskMain.showing-result #tapPanel {
+         position: absolute;
+         width: 1px;
+         height: 1px;
+         overflow: hidden;
+         clip-path: inset(50%);
+         opacity: 0;
+         pointer-events: none;
+      }
+
+      #kioskMain.showing-result #resultPanel {
+         grid-column: 1 / -1;
+      }
+
+      #hasilScan {
+         max-width: 44rem;
+      }
+
       .status-badge.connected {
          color: #15803d;
       }
@@ -66,10 +87,10 @@
       </header>
 
       <!-- Main Kiosk Grid -->
-      <main class="mx-auto grid w-full max-w-7xl flex-1 gap-4 p-4 lg:min-h-0 lg:grid-cols-5 lg:p-6">
+      <main id="kioskMain" class="mx-auto grid w-full max-w-7xl flex-1 gap-4 p-4 lg:min-h-0 lg:grid-cols-5 lg:p-6">
 
          <!-- Control & Input Panel -->
-         <section class="card flex flex-col gap-6 p-5 lg:col-span-2 lg:p-6">
+         <section id="tapPanel" class="card flex flex-col gap-6 p-5 lg:col-span-2 lg:p-6">
 
             <div>
                <h1 class="text-2xl font-semibold text-slate-900">Selamat datang</h1>
@@ -155,6 +176,7 @@
       // Reset panel view to waiting state
       function resetKioskView() {
          $('#hasilScan').hide().html('');
+         $('#kioskMain').removeClass('showing-result');
          $('#emptyState').fadeIn();
          $('#rfidInput').val('');
       }
@@ -164,6 +186,7 @@
          if (clearTimer) clearTimeout(clearTimer);
          
          // Visual loading state
+         $('#kioskMain').addClass('showing-result');
          $('#emptyState').hide();
          $('#hasilScan').html('<div class="flex flex-col items-center gap-3 text-center"><div class="spinner mt-0"></div><h3 class="text-base font-medium text-slate-600">Memproses presensi...</h3></div>').show();
 
