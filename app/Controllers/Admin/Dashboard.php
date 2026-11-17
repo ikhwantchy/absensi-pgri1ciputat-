@@ -11,6 +11,7 @@ use App\Models\KelasModel;
 use App\Models\PetugasModel;
 use App\Models\PresensiGuruModel;
 use App\Models\PresensiSiswaModel;
+use App\Libraries\RekapKehadiran;
 use CodeIgniter\I18n\Time;
 use App\Libraries\enums\UserRole;
 
@@ -50,22 +51,9 @@ class Dashboard extends BaseController
 
       $now = Time::now();
 
-      $dateRange = [];
-      for ($i = 6; $i >= 0; $i--) {
-         if ($i == 0) {
-            $formattedDate = "Hari ini";
-         } else {
-            $t = $now->subDays($i);
-            $formattedDate = "{$t->getDay()} " . substr($t->toFormattedDateString(), 0, 3);
-         }
-         array_push($dateRange, $formattedDate);
-      }
-
       $today = $now->toDateString();
 
-      // Get attendance trends using new methods
-      $grafikKehadiranSiswa = $this->presensiSiswaModel->getAttendanceTrend();
-      $grafikKehadiranGuru = $this->presensiGuruModel->getAttendanceTrend();
+      $rekap = new RekapKehadiran();
 
       // Prepare kelas data with student count
       $kelasData = $this->kelasModel->getDataKelas();
@@ -83,11 +71,17 @@ class Dashboard extends BaseController
          'kelas' => $kelasData,
          'jurusan' => $this->jurusanModel->getDataJurusan(),
 
-         'dateRange' => $dateRange,
          'dateNow' => $now->toLocalizedString('d MMMM Y'),
 
-         'grafikKehadiranSiswa' => $grafikKehadiranSiswa,
-         'grafikKehadiranGuru' => $grafikKehadiranGuru,
+         'rekap' => [
+            'mulai7' => RekapKehadiran::mulai(7),
+            'siswa' => $this->rekapSiswa($rekap, null),
+            'guru' => [
+               'harian' => $rekap->harian('guru', 30),
+               'ringkasan' => ['7' => $rekap->ringkasan('guru', 7), '30' => $rekap->ringkasan('guru', 30)],
+            ],
+            'perKelas' => ['7' => $rekap->perKelas(7), '30' => $rekap->perKelas(30)],
+         ],
 
          'jumlahKehadiranSiswa' => [
             'hadir' => count($this->presensiSiswaModel->getPresensiByKehadiran('1', $today)),
@@ -126,8 +120,6 @@ class Dashboard extends BaseController
          'alfa' => count($this->presensiSiswaModel->getPresensiByKehadiran('4', $today, $idKelas))
       ];
 
-      // Grafik Siswa (7 Hari) - using getAttendanceTrend
-      $grafikKehadiranSiswa = $this->presensiSiswaModel->getAttendanceTrend(7, $idKelas ?: null);
 
       // Jumlah siswa per kelas
       $jumlahSiswa = $this->siswaModel->getSiswaCountByKelas($idKelas);
@@ -143,8 +135,17 @@ class Dashboard extends BaseController
       return json_encode([
          'result' => 1,
          'htmlContent' => view('admin/_dashboard_siswa_stats', $data),
-         'chartData' => $grafikKehadiranSiswa,
+         'rekap' => $this->rekapSiswa(new RekapKehadiran(), $idKelas ?: null),
          'totalSiswa' => $jumlahSiswa
       ]);
+   }
+
+   /** Tren harian 30 hari dan ringkasan 7/30 hari untuk siswa (semua atau satu kelas). */
+   private function rekapSiswa(RekapKehadiran $rekap, $idKelas): array
+   {
+      return [
+         'harian' => $rekap->harian('siswa', 30, $idKelas),
+         'ringkasan' => ['7' => $rekap->ringkasan('siswa', 7, $idKelas), '30' => $rekap->ringkasan('siswa', 30, $idKelas)],
+      ];
    }
 }

@@ -7,6 +7,12 @@ $tiles = [
    ['Kelas', count($kelas), 'meeting_room', 'admin/kelas'],
    ['Petugas', count($petugas), 'manage_accounts', 'admin/petugas'],
 ];
+$legend = [
+   ['hadir', 'Hadir', 'bg-green-600'],
+   ['sakit', 'Sakit', 'bg-amber-500'],
+   ['izin', 'Izin', 'bg-sky-500'],
+   ['alfa', 'Alfa', 'bg-red-500'],
+];
 ?>
 <div class="space-y-4">
    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -70,18 +76,30 @@ $tiles = [
       </section>
    </div>
 
-   <div class="grid gap-4 lg:grid-cols-2">
-      <section class="card">
+   <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+      <h2 class="inline-flex items-center gap-1 text-sm font-semibold text-slate-900">
+         Rekap kehadiran
+         <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Dihitung dari hari efektif, yaitu hari yang punya catatan presensi. Akhir pekan dan libur tidak dihitung. Siswa tanpa catatan pada hari efektif dihitung alfa.</span></span>
+      </h2>
+      <nav class="tabs" aria-label="Periode rekap">
+         <button type="button" data-range="7" class="range-tab active">7 hari</button>
+         <button type="button" data-range="30" class="range-tab">30 hari</button>
+      </nav>
+   </div>
+
+   <div class="grid gap-4 lg:grid-cols-3">
+      <section class="card lg:col-span-2">
          <div class="card-head">
             <div>
                <h2 class="card-title" id="titleSiswaChart">Tren kehadiran siswa</h2>
-               <p class="card-sub">7 hari terakhir</p>
+               <p class="card-sub"><span id="siswaScope">Semua kelas</span> · persentase hadir per hari</p>
             </div>
             <a class="text-xs font-semibold no-underline hover:underline" href="<?= base_url('admin/absen-siswa'); ?>">Lihat rekap</a>
          </div>
          <div class="card-body">
             <div class="relative h-64 w-full">
                <canvas id="kehadiranSiswa"></canvas>
+               <p id="siswaEmpty" class="empty absolute inset-0 hidden items-center justify-center">Belum ada data presensi pada periode ini.</p>
             </div>
          </div>
       </section>
@@ -89,16 +107,60 @@ $tiles = [
       <section class="card">
          <div class="card-head">
             <div>
+               <h2 class="card-title">Rata-rata kehadiran siswa</h2>
+               <p class="card-sub"><span id="donutHari">0</span> hari efektif</p>
+            </div>
+         </div>
+         <div class="card-body">
+            <div class="relative mx-auto h-44 w-44">
+               <canvas id="donutSiswa"></canvas>
+               <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span id="donutPersen" class="text-2xl font-semibold tabular-nums text-slate-900">0%</span>
+                  <span class="text-xs text-slate-500">rata-rata hadir</span>
+               </div>
+            </div>
+            <ul class="mt-4 grid gap-y-1.5 text-sm">
+               <?php foreach ($legend as [$key, $label, $dot]): ?>
+                  <li class="flex items-center gap-2">
+                     <span class="h-2.5 w-2.5 rounded-full <?= $dot; ?>"></span>
+                     <span class="text-slate-600"><?= $label; ?></span>
+                     <span class="ml-auto tabular-nums text-slate-500" data-legend-count="<?= $key; ?>">0</span>
+                     <span class="w-14 text-right font-semibold tabular-nums text-slate-900" data-legend-persen="<?= $key; ?>">0%</span>
+                  </li>
+               <?php endforeach; ?>
+            </ul>
+         </div>
+      </section>
+   </div>
+
+   <div class="grid gap-4 lg:grid-cols-3">
+      <section class="card lg:col-span-2">
+         <div class="card-head">
+            <div>
                <h2 class="card-title">Tren kehadiran guru</h2>
-               <p class="card-sub">7 hari terakhir</p>
+               <p class="card-sub">Rata-rata <span id="guruPersen" class="font-semibold text-slate-700">0%</span> · persentase hadir per hari</p>
             </div>
             <a class="text-xs font-semibold no-underline hover:underline" href="<?= base_url('admin/absen-guru'); ?>">Lihat rekap</a>
          </div>
          <div class="card-body">
-            <div class="relative h-64 w-full">
+            <div class="relative h-56 w-full">
                <canvas id="kehadiranGuru"></canvas>
+               <p id="guruEmpty" class="empty absolute inset-0 hidden items-center justify-center">Belum ada data presensi pada periode ini.</p>
             </div>
          </div>
+      </section>
+
+      <section class="card order-first lg:order-none">
+         <div class="card-head">
+            <div>
+               <h2 class="card-title inline-flex items-center gap-1">
+                  Kehadiran per kelas
+                  <span class="tip" tabindex="0"><i class="material-icons">info</i><span class="tip-text">Urut dari persentase hadir paling rendah. Kelas paling atas adalah kelas yang siswanya paling sering tidak masuk.</span></span>
+               </h2>
+               <p class="card-sub">Terendah di atas</p>
+            </div>
+         </div>
+         <ul id="kelasList" class="divide-y divide-slate-100"></ul>
       </section>
    </div>
 </div>
@@ -107,135 +169,209 @@ $tiles = [
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/plugins/chartjs/chart.umd.min.js') ?>"></script>
 <script>
-    let kehadiranSiswaChart;
-    let kehadiranGuruChart;
+    const rekap = <?= json_encode($rekap) ?>;
+    let siswaRekap = rekap.siswa;
+    let range = '7';
 
-    const chartLabels = <?= json_encode($dateRange) ?>;
     const chartFont = "'Plus Jakarta Sans', sans-serif";
+    const primary = '#2e3192';
+    const statusColors = { hadir: '#16a34a', sakit: '#f59e0b', izin: '#0ea5e9', alfa: '#ef4444' };
+    const fmtPersen = (v) => (Math.round(v * 10) / 10).toLocaleString('id-ID') + '%';
+    const fmtTanggal = (iso, opts) => new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', opts);
 
-    const chartColors = {
-        hadir: '#16a34a',
-        sakit: '#f59e0b',
-        izin: '#0ea5e9',
-        alfa: '#ef4444'
-    };
+    Chart.defaults.font.family = chartFont;
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#64748b';
 
-    function dataset(label, data, color) {
-        return {
-            label: label,
-            data: data,
-            backgroundColor: color,
-            borderRadius: 3,
-            barPercentage: 0.6,
-            categoryPercentage: 0.8
-        };
+    function inRange(rows) {
+        return range === '7' ? rows.filter(r => r.tanggal >= rekap.mulai7) : rows;
     }
 
-    function createChartConfig(data) {
-        return {
-            type: 'bar',
-            data: {
-                labels: chartLabels,
-                datasets: [
-                    dataset('Hadir', data.hadir, chartColors.hadir),
-                    dataset('Sakit', data.sakit, chartColors.sakit),
-                    dataset('Izin', data.izin, chartColors.izin),
-                    dataset('Alfa', data.alfa, chartColors.alfa)
-                ]
-            },
+    function areaGradient(context) {
+        const { ctx, chartArea } = context.chart;
+        if (!chartArea) return 'rgba(46, 49, 146, 0.12)';
+        const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, 'rgba(46, 49, 146, 0.28)');
+        g.addColorStop(1, 'rgba(46, 49, 146, 0.02)');
+        return g;
+    }
+
+    // Garis vertikal di titik yang sedang di-hover.
+    const hoverLine = {
+        id: 'hoverLine',
+        afterDatasetsDraw(chart) {
+            const active = chart.tooltip?.getActiveElements?.() || [];
+            if (!active.length) return;
+            const { ctx, chartArea } = chart;
+            const x = active[0].element.x;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(46, 49, 146, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(x, chartArea.top);
+            ctx.lineTo(x, chartArea.bottom);
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
+
+    function areaChart(canvasId) {
+        return new Chart(document.getElementById(canvasId), {
+            type: 'line',
+            data: { labels: [], datasets: [{
+                data: [],
+                rows: [],
+                borderColor: primary,
+                borderWidth: 2,
+                backgroundColor: areaGradient,
+                fill: true,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: primary,
+                pointHoverBorderWidth: 2
+            }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            boxWidth: 8,
-                            boxHeight: 8,
-                            padding: 16,
-                            font: { family: chartFont, size: 12 }
-                        }
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        enabled: true,
-                        backgroundColor: '#0f172a',
-                        titleFont: { family: chartFont, size: 12, weight: '600' },
-                        bodyFont: { family: chartFont, size: 12 },
-                        padding: 8,
-                        cornerRadius: 6,
+                        backgroundColor: '#fff',
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        titleColor: '#64748b',
+                        titleFont: { size: 11, weight: '500' },
+                        bodyColor: '#0f172a',
+                        bodyFont: { size: 12 },
+                        footerColor: '#64748b',
+                        footerFont: { size: 11, weight: '400' },
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false,
                         callbacks: {
-                            label: function (context) {
-                                return context.dataset.label + ': ' + context.parsed.y + ' orang';
+                            title: (items) => fmtTanggal(items[0].chart.data.datasets[0].rows[items[0].dataIndex].tanggal, { weekday: 'long', day: 'numeric', month: 'long' }),
+                            label: (item) => fmtPersen(item.parsed.y) + ' hadir',
+                            footer: (items) => {
+                                const r = items[0].chart.data.datasets[0].rows[items[0].dataIndex];
+                                return `Hadir ${r.hadir} · Sakit ${r.sakit} · Izin ${r.izin} · Alfa ${r.alfa}`;
                             }
                         }
                     }
                 },
                 scales: {
                     y: {
-                        stacked: false,
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function (value) {
-                                if (Number.isInteger(value)) return value;
-                            },
-                            font: { family: chartFont, size: 11 }
-                        },
-                        grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false }
+                        min: 0,
+                        max: 100,
+                        ticks: { stepSize: 25, callback: (v) => v + '%' },
+                        grid: { color: 'rgba(15, 23, 42, 0.05)' },
+                        border: { display: false }
                     },
                     x: {
-                        stacked: false,
                         grid: { display: false },
-                        ticks: { font: { family: chartFont, size: 11 } }
+                        border: { display: false },
+                        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
                     }
                 }
+            },
+            plugins: [hoverLine]
+        });
+    }
+
+    function fillArea(chart, rows, emptyId) {
+        const ds = chart.data.datasets[0];
+        ds.rows = rows;
+        ds.data = rows.map(r => r.persen);
+        chart.data.labels = rows.map(r => fmtTanggal(r.tanggal, { day: 'numeric', month: 'short' }));
+        chart.update();
+        const empty = document.getElementById(emptyId);
+        empty.classList.toggle('hidden', rows.length > 0);
+        empty.classList.toggle('flex', rows.length === 0);
+    }
+
+    const siswaChart = areaChart('kehadiranSiswa');
+    const guruChart = areaChart('kehadiranGuru');
+
+    const donut = new Chart(document.getElementById('donutSiswa'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Hadir', 'Sakit', 'Izin', 'Alfa'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: [statusColors.hadir, statusColors.sakit, statusColors.izin, statusColors.alfa],
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '76%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (i) => `${i.label}: ${i.parsed}` } }
             }
-        };
+        }
+    });
+
+    function fillDonut(r) {
+        const keys = ['hadir', 'sakit', 'izin', 'alfa'];
+        donut.data.datasets[0].data = r.total > 0 ? keys.map(k => r[k]) : [0, 0, 0, 1];
+        donut.data.datasets[0].backgroundColor = r.total > 0 ? keys.map(k => statusColors[k]) : ['#e2e8f0'];
+        donut.update();
+        document.getElementById('donutPersen').textContent = fmtPersen(r.persen);
+        document.getElementById('donutHari').textContent = r.hari;
+        keys.forEach(k => {
+            document.querySelector(`[data-legend-count="${k}"]`).textContent = r[k];
+            document.querySelector(`[data-legend-persen="${k}"]`).textContent = fmtPersen(r.total > 0 ? r[k] / r.total * 100 : 0);
+        });
     }
 
-    function updateSiswaChart(newData) {
-        if (kehadiranSiswaChart) {
-            kehadiranSiswaChart.data.datasets[0].data = newData.hadir;
-            kehadiranSiswaChart.data.datasets[1].data = newData.sakit;
-            kehadiranSiswaChart.data.datasets[2].data = newData.izin;
-            kehadiranSiswaChart.data.datasets[3].data = newData.alfa;
-            kehadiranSiswaChart.update('active');
+    function fillKelas(rows) {
+        const list = document.getElementById('kelasList');
+        if (!rows.length) {
+            list.innerHTML = '<li class="empty">Belum ada kelas dengan siswa aktif.</li>';
+            return;
         }
+        list.innerHTML = rows.map((r, i) => {
+            const bar = r.persen >= 90 ? 'bg-green-600' : (r.persen >= 75 ? 'bg-amber-500' : 'bg-red-500');
+            const text = r.persen >= 90 ? 'text-green-700' : (r.persen >= 75 ? 'text-amber-700' : 'text-red-700');
+            const flag = i === 0 && r.total > 0 && rows.length > 1
+                ? '<span class="status status-danger"><i class="material-icons">trending_down</i>Terendah</span>' : '';
+            return `<li class="px-4 py-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold text-slate-900">${r.kelas}</span>
+                    <span class="text-xs text-slate-500">${r.siswa} siswa</span>
+                    ${flag}
+                    <span class="ml-auto font-semibold tabular-nums ${text}">${fmtPersen(r.persen)}</span>
+                </div>
+                <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${bar}" style="width:${Math.min(100, r.persen)}%"></div></div>
+                <div class="mt-1 text-xs text-slate-500">Alfa ${r.alfa} · Sakit ${r.sakit} · Izin ${r.izin}</div>
+            </li>`;
+        }).join('');
     }
 
-    function initDashboardPageCharts() {
-        const siswaCtx = document.getElementById('kehadiranSiswa');
-        if (siswaCtx) {
-            const dataSiswa = {
-                hadir: <?= json_encode($grafikKehadiranSiswa['hadir']) ?>,
-                sakit: <?= json_encode($grafikKehadiranSiswa['sakit']) ?>,
-                izin: <?= json_encode($grafikKehadiranSiswa['izin']) ?>,
-                alfa: <?= json_encode($grafikKehadiranSiswa['alfa']) ?>
-            };
-            kehadiranSiswaChart = new Chart(siswaCtx, createChartConfig(dataSiswa));
-        }
-
-        const guruCtx = document.getElementById('kehadiranGuru');
-        if (guruCtx) {
-            const dataGuru = {
-                hadir: <?= json_encode($grafikKehadiranGuru['hadir']) ?>,
-                sakit: <?= json_encode($grafikKehadiranGuru['sakit']) ?>,
-                izin: <?= json_encode($grafikKehadiranGuru['izin']) ?>,
-                alfa: <?= json_encode($grafikKehadiranGuru['alfa']) ?>
-            };
-            kehadiranGuruChart = new Chart(guruCtx, createChartConfig(dataGuru));
-        }
+    function render() {
+        fillArea(siswaChart, inRange(siswaRekap.harian), 'siswaEmpty');
+        fillArea(guruChart, inRange(rekap.guru.harian), 'guruEmpty');
+        fillDonut(siswaRekap.ringkasan[range]);
+        fillKelas(rekap.perKelas[range]);
+        document.getElementById('guruPersen').textContent = fmtPersen(rekap.guru.ringkasan[range].persen);
     }
+
+    document.querySelectorAll('.range-tab').forEach(btn => btn.addEventListener('click', function () {
+        range = this.dataset.range;
+        document.querySelectorAll('.range-tab').forEach(b => b.classList.toggle('active', b === this));
+        render();
+    }));
+
+    render();
 
     $(document).ready(function () {
-        initDashboardPageCharts();
-
         $('#filterKelas').on('change', function () {
             const idKelas = $(this).val();
             const loader = $('#filterLoader');
@@ -250,7 +386,9 @@ $tiles = [
                     const obj = JSON.parse(response);
                     if (obj.result == 1) {
                         $('#siswaStatsContainer').html(obj.htmlContent);
-                        updateSiswaChart(obj.chartData);
+                        siswaRekap = obj.rekap;
+                        $('#siswaScope').text(idKelas ? 'Kelas ' + $('#filterKelas option:selected').data('kelas') : 'Semua kelas');
+                        render();
                     }
                 },
                 error: function (xhr, status, thrown) {
